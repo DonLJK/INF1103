@@ -27,6 +27,7 @@ while(inv < 510):
             print("Inventory limit reached")
             print("inventory overflow: ", inv - 500)
         elif int(inv) > 500: 
+            print("Inventory overflow", inv - 500)
             print("programme closing")
             break 
                 #print("Error: Inventory limit exceeded")
