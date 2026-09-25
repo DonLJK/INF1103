@@ -26,19 +26,29 @@ def calculate_tax(amnt):
     return tax
 
 
-def generate_report(total_u, failed_attempts, tax_revenue):
+def generate_report(total_u, failed_attempts, tax_revenue, stonks):
     #A dedicated function to print the final summary
     print("\nTotal units: ", total_u, "\nFailed attempts: ", failed_attempts, "\nTax for delivery: $", tax_revenue)
     #with open("inventory.txt", "w") as file:
-    with open("inventory.txt", "a") as file:
-        file.write("\nTotal units: ", total_u, "\nFailed attempts: ", failed_attempts, "\nTax for delivery: $", tax_revenue)
+    with open("inventory.txt", "w") as file:
+        for each in stonks:
+            file.write(str(each[0]) + ", " + each[1] + ", " + str(each[2]) + "\n")
+        print("\nOrder Successfully saved to Inventory.txt")
+
+        file.write(
+            "==================\nFINAL REPORT\n"
+            f"Total units: {total_u}\n"
+            f"Failed attempts: {failed_attempts}\n"
+            f"Tax for delivery: ${tax_revenue}\n"
+        )
+    # ^ Code above here recommended by AI, Makes all of the code below herev into text and simpler for me to run so that i dont have to insert values
+    # file.write("\nTotal units: ", total_u, "\nFailed attempts: ", failed_attempts, "\nTax for delivery: $", tax_revenue)
     #    file.write("Total units: ", total_u, "\n", "Failed Attempts: ", )
     return
 
 def load_inventory():
     stonks = []
     inventory = 0
-    print("\ncurrent orders:\n")
      #open and read file, if file does not exist, create new file
     try: #tries to run this code
         opened_file = open("inventory.txt", "r")
@@ -46,7 +56,11 @@ def load_inventory():
             for items in file: #iterates within each item inside file
                 #values read from file
                 #input each line into file
-                fields = items.strip().split(", ")
+                items = items.strip()#takes out each line from file and input into items
+                if items == "==================":#Checks each line with this value to cut off when reach Final report
+                    break
+
+                fields = items.split(", ") #Splits the sentence on that particular ',' value
                 if len(fields) == 3:
                     order_id, name, qty = fields
                     order_id = int(order_id)
@@ -57,6 +71,7 @@ def load_inventory():
                 inventory, accepted = process_delivery(inventory, quant)
                 if accepted:
                     stonks.append([order_id, name, qty])
+                
         return inventory, stonks
     except FileNotFoundError: #Catches any errors and print
         print("Existing File does not exist, generating new copy")
@@ -69,29 +84,23 @@ def save_inventory(item, num, stonks):
     next_id = max((order[0] for order in stonks), default=0) + 1
     stonks.append([next_id, item, num])
     print("\nnew order added:\n", next_id, ",", item, ",", num)
+    print("Order successfully added to inventory.txt")
     #stonkers = str(stonks)
     #create UID for each item saved
-    try:
-        with open("inventory.txt", "w") as file:
-            for each in stonks:
-                file.write(str(each[0]) + ", " + each[1] + ", " + str(each[2]) + "\n")
-            print("\nOrder Successfully saved to Inventory.txt")
-    except FileExistsError:
-        print("Uh oh something happened in save_inventory") 
-    return 
-
+    return stonks
 
 
 #variables
 error_count = 0
 num = 0
 price = 0
+inventory, stonks = load_inventory()
 
 while True:     
         #This code prints
-        inventory, stonks = load_inventory()
+        print("\ncurrent orders:\n")
         for i in stonks:
-            print(i[0], i[1], i[2])
+            print(i[0], i[1], i[2]) 
         item_name = input ("\nEnter Item name: ")
         if item_name == "quit":
             break
@@ -104,10 +113,10 @@ while True:
         else:
             inventory, accepted = process_delivery(inventory, num)
             if accepted:
-                save_inventory(item_name, num, stonks)
+                stonks = save_inventory(item_name, num, stonks)
 
 price = calculate_tax(inventory)
-generate_report(inventory, error_count, price)
+generate_report(inventory, error_count, price, stonks)
 print("========================")
 print("Session Terminated")
 
