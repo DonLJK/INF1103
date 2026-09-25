@@ -76,9 +76,9 @@ def load_inventory():
     except FileNotFoundError: #Catches any errors and print
         print("Existing File does not exist, generating new copy")
         open("inventory.txt", "x").close()
+        return inventory, stonks
     else:
          print("File is currently empty")
-    return
 
 def save_inventory(item, num, stonks):
     next_id = max((order[0] for order in stonks), default=0) + 1
