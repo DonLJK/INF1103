@@ -1,8 +1,6 @@
 def get_valid_input():
     #Handles the prompt, handles input validation, and
     #returns a valid integer or a "quit" signal.
-
-    item_name = input("Enter item name :")
     val = input("Enter stock quantity: ")
     if val == "quit":
         return "terminate"
@@ -10,13 +8,16 @@ def get_valid_input():
         print("Invalid Value, please try again")
         return "error"
     else:
-        return item_name, int(val)
+        return int(val)
     
 def process_delivery(total, new_value):
-    total = total + new_value
-    print("Current total: ", total)
-    #Calculates the new total and returns it
-    return total
+    prop_total = total + int(new_value)
+    if prop_total > 500:
+        print("\nDelivery skipped: inventory limit would be exceeded.")
+        print("Current Inventory total: ", total)
+        return total, False
+    return prop_total, True
+    
 
 def calculate_tax(amnt):
     tax = amnt * 10/100
@@ -28,58 +29,85 @@ def calculate_tax(amnt):
 def generate_report(total_u, failed_attempts, tax_revenue):
     #A dedicated function to print the final summary
     print("\nTotal units: ", total_u, "\nFailed attempts: ", failed_attempts, "\nTax for delivery: $", tax_revenue)
-    #with open("inventory.txt", "w") as file: 
+    #with open("inventory.txt", "w") as file:
+    with open("inventory.txt", "a") as file:
+        file.write("\nTotal units: ", total_u, "\nFailed attempts: ", failed_attempts, "\nTax for delivery: $", tax_revenue)
     #    file.write("Total units: ", total_u, "\n", "Failed Attempts: ", )
     return
 
 def load_inventory():
-    #open and read file, if file does not exist, create new file
-    print("current orders:")
+    stonks = []
+    inventory = 0
+    print("\ncurrent orders:\n")
+     #open and read file, if file does not exist, create new file
     try: #tries to run this code
         opened_file = open("inventory.txt", "r")
-        print(opened_file.readlines())
+        with open("inventory.txt", "r") as file:
+            for items in file: #iterates within each item inside file
+                #values read from file
+                #input each line into file
+                fields = items.strip().split(", ")
+                if len(fields) == 3:
+                    order_id, name, qty = fields
+                    order_id = int(order_id)
+                else:
+                    name, qty = fields
+                    order_id = 1001 + len(stonks)
+                quant = int(qty)
+                inventory, accepted = process_delivery(inventory, quant)
+                if accepted:
+                    stonks.append([order_id, name, qty])
+        return inventory, stonks
     except FileNotFoundError: #Catches any errors and print
         print("Existing File does not exist, generating new copy")
         open("inventory.txt", "x").close()
-
+    else:
+         print("File is currently empty")
     return
 
 def save_inventory(item, num, stonks):
-    stonks.append(item)
-    stonks.append(num)
-    with open("inventory.txt", "w") as file:
-                    for i in stonks:  
-                        file.write(i)
-                    file.close()
-    return
+    next_id = max((order[0] for order in stonks), default=0) + 1
+    stonks.append([next_id, item, num])
+    print("\nnew order added:\n", next_id, ",", item, ",", num)
+    #stonkers = str(stonks)
+    #create UID for each item saved
+    try:
+        with open("inventory.txt", "w") as file:
+            for each in stonks:
+                file.write(str(each[0]) + ", " + each[1] + ", " + str(each[2]) + "\n")
+            print("\nOrder Successfully saved to Inventory.txt")
+    except FileExistsError:
+        print("Uh oh something happened in save_inventory") 
+    return 
+
 
 
 #variables
-inventory = 0
-count = 0
+error_count = 0
 num = 0
 price = 0
-stonks = []
-while True:
-        load_inventory()
-        item, num = get_valid_input()
+
+while True:     
+        #This code prints
+        inventory, stonks = load_inventory()
+        for i in stonks:
+            print(i[0], i[1], i[2])
+        item_name = input ("\nEnter Item name: ")
+        if item_name == "quit":
+            break
+        num = get_valid_input()
         if num == "terminate":
              break
         elif num == "error":
-             count += 1
+             error_count += 1
+             continue
         else:
-            inventory = process_delivery(inventory, num)
-            if inventory > 500:
-                print("Currently over limit by: ", inventory - 500)
-                break
-            else:
-                save_inventory(item,num,stonks)
-                #print(stonks) #prints out list
-                
-            
-            
+            inventory, accepted = process_delivery(inventory, num)
+            if accepted:
+                save_inventory(item_name, num, stonks)
+
 price = calculate_tax(inventory)
-generate_report(inventory, count, price)
+generate_report(inventory, error_count, price)
 print("========================")
 print("Session Terminated")
 
