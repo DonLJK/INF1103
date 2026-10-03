@@ -1,3 +1,29 @@
+
+#====== Lab 5 ======#
+#Defining new functions
+#cart = {
+#
+#}
+
+stocks = [
+    {}
+]
+
+
+def add_product(order_id, item_name, qty):
+
+    pass
+
+def update_stock():
+    pass
+
+def search_product(): 
+    pass
+
+def display_all():
+    pass
+#============#
+
 def get_valid_input():
     #Handles the prompt, handles input validation, and
     #returns a valid integer or a "quit" signal.
@@ -28,11 +54,11 @@ def calculate_tax(amnt):
 
 def generate_report(total_u, failed_attempts, tax_revenue, stonks):
     #A dedicated function to print the final summary
-    print("\nTotal units: ", total_u, "\nFailed attempts: ", failed_attempts, "\nTax for delivery: $", tax_revenue)
+    print("Total units: ", total_u, "\nFailed attempts: ", failed_attempts, "\nTax for delivery: $", tax_revenue)
     #with open("inventory.txt", "w") as file:
     with open("inventory.txt", "w") as file:
         for each in stonks:
-            file.write(str(each[0]) + ", " + each[1] + ", " + str(each[2]) + "\n")
+            file.write(str(each[0]) + "," + each[1] + "," + str(each[2]) + "\n")
         print("\nOrder Successfully saved to Inventory.txt")
 
         file.write(
@@ -81,13 +107,18 @@ def load_inventory():
          print("File is currently empty")
 
 def save_inventory(item, num, stonks):
-    next_id = max((order[0] for order in stonks), default=0) + 1
-    stonks.append([next_id, item, num])
+    #==== get this and move to add products ====#
+    next_id = max((order["order_id"] for order in stonks), default=0) + 1
+    #stonks.append([next_id, item, num])
+    add_product(next_id, item, num)
+    #===========================================#
     print("\nnew order added:\n", next_id, ",", item, ",", num)
-    print("Order successfully added to inventory.txt")
+    print("Order successfully added")
     #stonkers = str(stonks)
     #create UID for each item saved
     return stonks
+
+
 
 
 #variables
@@ -100,7 +131,7 @@ while True:
         #This code prints
         print("\ncurrent orders:\n")
         for i in stonks:
-            print(i[0], i[1], i[2]) 
+            print(i[0],".", i[1], i[2]) 
         item_name = input ("\nEnter Item name: ")
         if item_name == "quit":
             break
@@ -113,10 +144,12 @@ while True:
         else:
             inventory, accepted = process_delivery(inventory, num)
             if accepted:
-                stonks = save_inventory(item_name, num, stonks)
+                stocks = save_inventory(item_name, num, stocks)
+                
 
+print("========================")
 price = calculate_tax(inventory)
-generate_report(inventory, error_count, price, stonks)
+generate_report(inventory, error_count, price, stocks)
 print("========================")
 print("Session Terminated")
 
