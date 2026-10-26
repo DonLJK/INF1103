@@ -1,3 +1,5 @@
+import math
+import json
 #UML
 '''
 #Product class should not be responsible for
@@ -51,15 +53,35 @@ class Product:
         print("Product ID:", self.__productid)
         print("Product Name:", self.__productname)
         print("Product Price:",  self.__productprice)
-        print("Product Stock:", self.__productstock)
+        print("Product Stock:", self.__productstock, "\n")
         return 
+
+    def get_product_id(self):
+        return self.__productid
+
+    def get_product_name(self):
+        return self.__productname
+
+    def get_product_price(self):
+        return self.__productprice
+
+    def get_product_stock(self):
+        return self.__productstock
 
 class Inventory:
     def __init__(self):
         self.__inventory = []
 
+    def search_prod(self, id):
+        for items in self.__inventory:
+            if items.get_product_id() == id:
+                return items
+        print("product not found")
+        return 
+            
+
     def store_product(self, product): #Storing existing values
-        pass #Later implmentation with loading
+        self.__inventory.append(product)
 
     def add_product(self, product): #Storing new values into current inventory filled
         self.__inventory.append(product)
@@ -69,17 +91,11 @@ class Inventory:
             item.display_information()
 
 
-"""
-Menu:
--------------
-+ display_menu()
-+ get_user_input()
-+ run(): void
-"""
-
 class Menu: #Cycle through options - for now also creates the products and inventory
     def show():
-        print("========== Inventory Management =========")
+        print("==========================================")
+        print("INVENTORY MANAGEMENT SYSTEM")
+        print("==========================================\n")
         print("1. Display All Products")
         print("2. Add Products")
         print("3. Update Stock")
@@ -89,18 +105,78 @@ class Menu: #Cycle through options - for now also creates the products and inven
     def get_user_input():
         user_choice = input("\nSelect an Option: ")
         return int(user_choice)
+    
+def load_inventory():
+    try:
+        inventory = Inventory()
+        with open("inventory.json", "r", encoding="utf-8") as file:
+            content = file.read().strip()
+            if not content:
+                print("inventory.json is empty, starting with new inventory")
+                return inventory
+            data = json.loads(content)
+    except FileNotFoundError:
+        print("inventory.json not found, starting with empty inventory")
+        return inventory
+    except json.JSONDecodeError:
+        print("inventory.json is corrupted or invalid, starting with empty inventory")
+        return inventory
 
-my_inventory = Inventory()
-mug = Product(101 , "pizza", 14.50, 10)
-my_inventory.add_product(mug)
-my_inventory.display_all()
+    loaded_stocks = data.get("stocks", [])
+    for i in loaded_stocks:
+        item = Product(i["order_id"],i["item_name"], i["item_price"], i["qty"])
+        inventory.store_product(item)
+    return inventory
+
+def get_valid_input():
+    qty = input("Enter stock quantity: ")
+    if qty == "quit":
+        return "terminate"
+    if not qty.isdigit():
+        print("Invalid Value, please try again")
+        return "error"
+
+    item_price = input("Price: ")
+    try:
+        price = float(item_price)
+    except ValueError:
+        print("Invalid price, please try again")
+        return "error"
+
+    if not math.isfinite(price) or price < 0:
+        print("Price must be a finite, non-negative number")
+        return "error"
+
+    return price, int(qty)
+
+
 Menu.show()
-if Menu.get_user_input() == 1:
-    my_inventory.display_all()
+my_inventory = load_inventory()
+while True:
+    choice = Menu.get_user_input()
+    if choice == 1:
+        my_inventory.display_all()
+    elif choice == 2: 
+        print("==== ADD PRODUCT ====")
+        productid = input("Product id: ")
+        prod_name = input("Product name: ")
+        prod_price = input("Product price: ")
+        prod_qty = input("Product Stock: ")
 
+        my_inventory.add_product(productid, prod_name, prod_price, prod_qty)
+    elif choice == 3:
+        print("=====Update Product====")
+        pid = int(input("Product"))
+        item = my_inventory.search_prod(pid)
+        if item is not None:
+            print("item found: ", )
+            qty = input("New Stock value: ")
+            item.update_stock(qty)
+            print("Stock updated!")
+        else:
+            print("Product not found.")
 
-#my_inventory = Inventory()
-#mug = Product(101 , "pizza", 14.50, 10)
-#my_inventory.add_product(mug)
-#my_inventory.display_all()
+    elif choice == 6:
+        break
 
+        
