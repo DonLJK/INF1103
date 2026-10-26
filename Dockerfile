@@ -1,4 +1,5 @@
 FROM python:3.13.15-slim
 WORKDIR /app
-COPY persistent_auditor.py .
-CMD ["python", "persistent_auditor.py"]
+COPY inventory_management.py .
+COPY inventory.json .
+CMD ["python", "inventory_management.py"]

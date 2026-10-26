@@ -114,9 +114,9 @@ def generate_report(total_u, failed_attempts, tax_revenue, stocks):
     #    "\nFailed attempts:", failed_attempts,
     #    "\nTax for delivery: $", tax_revenue,
     #)
-    print("\nInventory items:")
-    for product in stocks:
-        print("p",product["order_id"], ".", product["item_name"], "| Price: $", product["item_price"], "| Qty:", product["qty"])
+    #print("\nInventory items:")
+    #for product in stocks:
+    #    print("p",product["order_id"], ".", product["item_name"], "| Price: $", product["item_price"], "| Qty:", product["qty"])
 
     with open("inventory.json", "w", encoding="utf-8") as file:
         json.dump(
