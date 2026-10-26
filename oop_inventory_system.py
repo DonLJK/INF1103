@@ -22,7 +22,7 @@ Inventory:
 -------------
 + store_product(product:List)
 + add_product(itemname: String)
-+ Search_product (itemid: int)
++ get_productuct (itemid: int)
 + display_all():void
 
 Menu:
@@ -72,19 +72,46 @@ class Inventory:
     def __init__(self):
         self.__inventory = []
 
-    def search_prod(self, id):
+    def get_product(self, id):
         for items in self.__inventory:
             if items.get_product_id() == id:
+                print("\n-----PRODUCT FOUND!-----") 
+                print("Item ID: ",items.get_product_id())
+                print("Item name: ",items.get_product_name())
+                print("Item Price: ", items.get_product_price())
+                print("Stock: ", items.get_product_stock())
                 return items
-        print("product not found")
+            else:
+                print("product not found")
         return 
-            
+
+    def get_next_id(self):
+        return max(
+            (product.get_product_id() for product in self.__inventory),
+            default=100,
+        ) + 1
+
+    def get_inventory(self):
+        return self.__inventory.copy()
+
+    def get_total_stocks(self):
+        total = sum(items.get_product_stock() for items in self.__inventory)
+        return total
+
+    def check_storage_space(self, total_stocks, qty):
+        new_total = total_stocks + int(qty)
+        if new_total > 500:
+            print("\nDelivery skipped: inventory limit would be exceeded.")
+            print("Current Inventory total: ", total_stocks)
+            return total_stocks
+        return new_total
 
     def store_product(self, product): #Storing existing values
         self.__inventory.append(product)
 
     def add_product(self, product): #Storing new values into current inventory filled
         self.__inventory.append(product)
+        print("Product Saved!")
 
     def display_all(self):
         for item in self.__inventory:
@@ -101,10 +128,32 @@ class Menu: #Cycle through options - for now also creates the products and inven
         print("3. Update Stock")
         print("4. Search Product")
         print("5. Save Inventory")
+        print("6. Exit")
 
     def get_user_input():
         user_choice = input("\nSelect an Option: ")
         return int(user_choice)
+
+def get_valid_input():
+        qty = input("Enter stock quantity: ")
+        if qty == "quit":
+            return "terminate"
+        if not qty.isdigit():
+            print("Invalid Value, please try again")
+            return "error"
+        item_price = input("Price: ")
+        try:
+            price = float(item_price)
+        except ValueError:
+            print("Invalid price, please try again")
+            return "error"
+
+        if not math.isfinite(price) or price < 0:
+            print("Price must be a finite, non-negative number")
+            return "error"
+
+        return price, int(qty)
+        
     
 def load_inventory():
     try:
@@ -128,55 +177,93 @@ def load_inventory():
         inventory.store_product(item)
     return inventory
 
-def get_valid_input():
-    qty = input("Enter stock quantity: ")
-    if qty == "quit":
-        return "terminate"
-    if not qty.isdigit():
-        print("Invalid Value, please try again")
-        return "error"
+def process_delivery(total, new_value):
+    prop_total = total + int(new_value)
+    if prop_total > 500:
+        print("\nDelivery skipped: inventory limit would be exceeded.")
+        print("Current Inventory total: ", total)
+        return total, False
+    return prop_total, True
 
-    item_price = input("Price: ")
-    try:
-        price = float(item_price)
-    except ValueError:
-        print("Invalid price, please try again")
-        return "error"
+def calculate_tax(amnt):
+        tax = amnt * 10/100
+        return tax
 
-    if not math.isfinite(price) or price < 0:
-        print("Price must be a finite, non-negative number")
-        return "error"
+def generate_and_save_report(inventory, failed, tax):
+    inv = [
+        {
+            "order_id": product.get_product_id(),
+            "item_name": product.get_product_name(),
+            "item_price": product.get_product_price(),
+            "qty": product.get_product_stock(),
+        }
+        for product in inventory.get_inventory()
+    ]
 
-    return price, int(qty)
+    data = {
+        "stocks": inv,
+        "report": {
+            "total_units": inventory.get_total_stocks(),
+            "failed_attempts": failed,
+            "tax_revenue": tax,
+        },
+    }
 
+    with open("inventory.json", "w", encoding="utf-8") as file:
+        json.dump(data, file, indent=4)
 
-Menu.show()
+    print("Inventory saved.")
+
+error_count = 0
+Menu.show() 
 my_inventory = load_inventory()
 while True:
     choice = Menu.get_user_input()
     if choice == 1:
+        print("\n====Displaying Inventory====\n")
         my_inventory.display_all()
+
     elif choice == 2: 
         print("==== ADD PRODUCT ====")
-        productid = input("Product id: ")
+        n_id = my_inventory.get_next_id()
+        print("Product ID: ", n_id)
         prod_name = input("Product name: ")
-        prod_price = input("Product price: ")
-        prod_qty = input("Product Stock: ")
+        if prod_name == "quit":
+            break
+        result = get_valid_input()
+        if result == "terminate":
+                break
+        if result == "error":
+                error_count += 1
+                continue
+        price, num = result
+        total = my_inventory.get_total_stocks()
+        new_total = my_inventory.check_storage_space(total, num)
+        if new_total == total and num > 0:
+            continue
+        new_item = Product(n_id, prod_name, price, num)
+        my_inventory.add_product(new_item)
 
-        my_inventory.add_product(productid, prod_name, prod_price, prod_qty)
     elif choice == 3:
         print("=====Update Product====")
-        pid = int(input("Product"))
-        item = my_inventory.search_prod(pid)
+        pid = int(input("Product ID: "))
+        item = my_inventory.get_product(pid)
         if item is not None:
-            print("item found: ", )
             qty = input("New Stock value: ")
             item.update_stock(qty)
             print("Stock updated!")
         else:
             print("Product not found.")
 
+    elif choice == 4:
+        print("====Search Product====")
+        pid = int(input("Product ID: "))
+        item = my_inventory.get_product(pid)
+            
+    elif choice == 5:
+        tax = calculate_tax(my_inventory.get_total_stocks())
+        er_count = error_count
+        generate_and_save_report(my_inventory, er_count, tax)
+
     elif choice == 6:
         break
-
-        

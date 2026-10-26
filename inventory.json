@@ -17,11 +17,17 @@
             "item_name": "Keyboard",
             "item_price": 45.0,
             "qty": 25
+        },
+        {
+            "order_id": 104,
+            "item_name": "420",
+            "item_price": 3.0,
+            "qty": 100
         }
     ],
     "report": {
-        "total_units": 80,
+        "total_units": 180,
         "failed_attempts": 0,
-        "tax_revenue": 8.0
+        "tax_revenue": 18.0
     }
 }
