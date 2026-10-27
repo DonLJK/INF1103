@@ -252,6 +252,10 @@ while True:
         item = my_inventory.get_product(pid)
         if item is not None:
             qty = input("New Stock value: ")
+            total = my_inventory.get_total_stocks()
+            new_total = my_inventory.check_storage_space(total, qty)
+            if new_total == total:
+                        continue
             item.update_stock(int(qty))
             print("Stock updated!")
 
