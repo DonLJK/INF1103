@@ -117,7 +117,8 @@ class Inventory:
             item.display_information()
 
     def calculate_tax(self):
-        tax = self.get_total_stocks() * 10/100
+        stock = self.get_total_stocks()
+        tax = int(stock) * 10/100
         return tax
 
 
@@ -243,7 +244,7 @@ while True:
         item = my_inventory.get_product(pid)
         if item is not None:
             qty = input("New Stock value: ")
-            item.update_stock(qty)
+            item.update_stock(int(qty))
             print("Stock updated!")
 
     elif choice == 4:
@@ -253,7 +254,8 @@ while True:
             
     elif choice == 5:
         er_count = error_count
-        generate_and_save_report(my_inventory, er_count, my_inventory.calculate_tax())
+        tax =  my_inventory.calculate_tax()
+        generate_and_save_report(my_inventory, er_count, tax)
 
     elif choice == 6:
         break
