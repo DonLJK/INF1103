@@ -1,5 +1,5 @@
 FROM python:3.13.15-slim
 WORKDIR /app
-COPY inventory_management.py .
+COPY oop_inventory_system.py .
 COPY inventory.json .
-CMD ["python", "inventory_management.py"]
+CMD ["python", "oop_inventory_system.py"]

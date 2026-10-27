@@ -81,8 +81,7 @@ class Inventory:
                 print("Item Price: ", items.get_product_price())
                 print("Stock: ", items.get_product_stock())
                 return items
-            else:
-                print("product not found")
+        print("product not found")
         return 
 
     def get_next_id(self):
@@ -246,8 +245,6 @@ while True:
             qty = input("New Stock value: ")
             item.update_stock(qty)
             print("Stock updated!")
-        else:
-            print("Product not found.")
 
     elif choice == 4:
         print("====Search Product====")
