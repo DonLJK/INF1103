@@ -221,7 +221,11 @@ while True:
         print("==== ADD PRODUCT ====")
         n_id = my_inventory.get_next_id()
         print("Product ID: ", n_id)
-        prod_name = input("Product name: ")
+        try:
+            prod_name = input("Product name: ")
+        except ValueError:
+            print("Invalid ID")
+            continue
         if prod_name == "quit":
             break
         result = get_valid_input()
@@ -240,7 +244,11 @@ while True:
 
     elif choice == 3:
         print("=====Update Product====")
-        pid = int(input("Product ID: "))
+        try:
+            pid = int(input("Product ID: ")) 
+        except ValueError:
+            print("Invalid ID")
+            continue
         item = my_inventory.get_product(pid)
         if item is not None:
             qty = input("New Stock value: ")
