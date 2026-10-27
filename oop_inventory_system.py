@@ -117,6 +117,10 @@ class Inventory:
         for item in self.__inventory:
             item.display_information()
 
+    def calculate_tax(self):
+        tax = self.get_total_stocks() * 10/100
+        return tax
+
 
 class Menu: #Cycle through options - for now also creates the products and inventory
     def show():
@@ -177,17 +181,7 @@ def load_inventory():
         inventory.store_product(item)
     return inventory
 
-def process_delivery(total, new_value):
-    prop_total = total + int(new_value)
-    if prop_total > 500:
-        print("\nDelivery skipped: inventory limit would be exceeded.")
-        print("Current Inventory total: ", total)
-        return total, False
-    return prop_total, True
 
-def calculate_tax(amnt):
-        tax = amnt * 10/100
-        return tax
 
 def generate_and_save_report(inventory, failed, tax):
     inv = [
@@ -258,12 +252,11 @@ while True:
     elif choice == 4:
         print("====Search Product====")
         pid = int(input("Product ID: "))
-        item = my_inventory.get_product(pid)
+        my_inventory.get_product(pid)
             
     elif choice == 5:
-        tax = calculate_tax(my_inventory.get_total_stocks())
         er_count = error_count
-        generate_and_save_report(my_inventory, er_count, tax)
+        generate_and_save_report(my_inventory, er_count, my_inventory.calculate_tax())
 
     elif choice == 6:
         break

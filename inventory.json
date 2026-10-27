@@ -23,11 +23,17 @@
             "item_name": "420",
             "item_price": 3.0,
             "qty": 100
+        },
+        {
+            "order_id": 105,
+            "item_name": "test1",
+            "item_price": 10.0,
+            "qty": 9
         }
     ],
     "report": {
-        "total_units": 180,
-        "failed_attempts": 0,
-        "tax_revenue": 18.0
+        "total_units": 189,
+        "failed_attempts": 1,
+        "tax_revenue": 18.9
     }
 }
