@@ -258,4 +258,5 @@ while True:
         generate_and_save_report(my_inventory, er_count, tax)
 
     elif choice == 6:
+        print("Exiting Program..")
         break
