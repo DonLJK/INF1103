@@ -1,44 +1,7 @@
 import math
 import json
 #UML
-'''
-#Product class should not be responsible for
-loading
-saving
-displaying
-asking user for input
-managing entire inventory
 
-PRODUCT: 
-- __productid
-- __name
-- __price
-- __stock
------------------
-+ update_stock(quantity:int)void
-+ display_information():void
-
-Inventory:
--------------
-+ store_product(product:List)
-+ add_product(itemname: String)
-+ get_productuct (itemid: int)
-+ display_all():void
-
-Menu:
--------------
-+ display_menu()
-+ get_user_input()
-+ run(): void
-
-FileHandler:
--------------
-+ Load_inventory(): List<Product>
-+ Save_inventory(product:List)
-
-Objects: Inventory_System, Products, menu, file
-
-'''
 class Product:
     def __init__ (self, productid, name, price, stock):
         self.__productid = productid

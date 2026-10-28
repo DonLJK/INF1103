@@ -4,7 +4,7 @@
             "order_id": 101,
             "item_name": "Laptop",
             "item_price": 1200.0,
-            "qty": 15
+            "qty": 20
         },
         {
             "order_id": 102,
@@ -32,8 +32,8 @@
         }
     ],
     "report": {
-        "total_units": 189,
+        "total_units": 194,
         "failed_attempts": 0,
-        "tax_revenue": 18.9
+        "tax_revenue": 19.4
     }
 }
