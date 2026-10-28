@@ -13,10 +13,7 @@ class Product:
         self.__productstock = quantity
 
     def display_information(self):
-        print("Product ID:", self.__productid)
-        print("Product Name:", self.__productname)
-        print("Product Price:",  self.__productprice)
-        print("Product Stock:", self.__productstock, "\n")
+        print(f"ID: {self.__productid} | Name: {self.__productname} | Price:  {self.__productprice} | Stock: {self.__productstock}")
         return 
 
     def get_product_id(self):
