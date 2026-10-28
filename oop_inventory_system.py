@@ -230,5 +230,10 @@ while True:
         generate_and_save_report(my_inventory, er_count, tax)
 
     elif choice == 6:
-        print("Exiting Program..")
+        er_count = error_count
+        tax =  my_inventory.calculate_tax()
+        generate_and_save_report(my_inventory, er_count, tax)
+        print("Saving inventory before exit...")
+        print("Inventory Saved successfully\n\n")
+        print("Program Terminated")
         break
