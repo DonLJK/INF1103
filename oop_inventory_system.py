@@ -1,6 +1,6 @@
 import math
 import json
-#UML
+from abc import ABC, abstractmethod
 
 class Product:
     def __init__ (self, productid, name, price, stock):
@@ -27,6 +27,41 @@ class Product:
 
     def get_product_stock(self):
         return self.__productstock
+
+    @abstractmethod
+    def get_fulfilment_info(self):
+        pass
+
+class CanBeShipped(ABC):
+    @abstractmethod
+    def calculate_shipping_cost(self):
+        pass
+
+class Physicalproduct(Product, CanBeShipped):
+    def __init__ (self, productid, name, price, stock, weight):
+        self.__productweight = weight
+        super().__init__(self, productid, name, price, stock)
+
+    def display_information(self):
+        print(f"ID: {self.__productid} | Name: {self.__productname} | Price:  {self.__productprice} | Stock: {self.__productstock} | Weight: {self.__productweight}")
+
+    def get_fulfilment_info(self):
+        return "Product requires physical shipping"
+
+    def calculate_shipping_cost(self):
+        s_cost = self.__productweight * 0.10
+        return s_cost
+
+class DigitalProduct(Product):
+    def __init__ (self, productid, name, price, stock, dwn_size):
+        self.__dwn_size = dwn_size
+        super().__init__(self, productid, name, price, stock)
+
+    def display_information(self):
+        print(f"ID: {self.__productid} | Name: {self.__productname} | Price:  {self.__productprice} | Stock: {self.__productstock} | Download Size: {self.__dwn_size}")
+
+    def get_fulfilment_info(self):
+        return "Product is delivered digitally"
 
 class Inventory:
     def __init__(self):
@@ -168,6 +203,11 @@ def generate_and_save_report(inventory, failed, tax):
 
     print("Inventory saved.")
 
+
+
+
+
+
 error_count = 0
 Menu.show() 
 my_inventory = load_inventory()
@@ -225,14 +265,12 @@ while True:
         my_inventory.get_product(pid)
             
     elif choice == 5:
-        er_count = error_count
-        tax =  my_inventory.calculate_tax()
-        generate_and_save_report(my_inventory, er_count, tax)
+        generate_and_save_report(my_inventory, error_count, my_inventory.calculate_tax())
 
     elif choice == 6:
         er_count = error_count
         tax =  my_inventory.calculate_tax()
-        generate_and_save_report(my_inventory, er_count, tax)
+        generate_and_save_report(my_inventory, error_count, my_inventory.calculate_tax())
         print("Saving inventory before exit...")
         print("Inventory Saved successfully\n\n")
         print("Program Terminated")
