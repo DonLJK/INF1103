@@ -43,7 +43,7 @@ class Physicalproduct(Product, CanBeShipped):
         super().__init__(productid, name, price, stock)
 
     def display_information(self):
-        print(f"ID: {self.__productid} | Name: {self.__productname} | Price:  {self.__productprice} | Stock: {self.__productstock} | Weight: {self.__productweight}")
+        print(f"ID: {self.get_product_id()} | Name: {self.get_product_name()} | Price:  {self.get_product_price()} | Stock: {self.get_product_stock()} | Weight: {self.__productweight}")
 
     def get_fulfilment_info(self):
         return "Product requires physical shipping"
@@ -52,16 +52,25 @@ class Physicalproduct(Product, CanBeShipped):
         s_cost = self.__productweight * 0.10
         return s_cost
 
+    def get_weight(self):
+        return self.__productweight
+
+    def update_weight(self, weight):
+        self.__productweight = weight
+
 class DigitalProduct(Product):
     def __init__ (self, productid, name, price, stock, dwn_size):
         self.__dwn_size = dwn_size
         super().__init__(productid, name, price, stock)
 
     def display_information(self):
-        print(f"ID: {self.__productid} | Name: {self.__productname} | Price:  {self.__productprice} | Stock: {self.__productstock} | Download Size: {self.__dwn_size}")
+        print(f"ID: {self.get_product_id()} | Name: {self.get_product_name()} | Price:  {self.get_product_price()} | Stock: {self.get_product_stock()} | Download Size: {self.__dwn_size}")
 
     def get_fulfilment_info(self):
         return "Product is delivered digitally"
+
+    def get_download_size(self):
+        return self.__dwn_size
 
 class Inventory:
     def __init__(self):
@@ -80,10 +89,7 @@ class Inventory:
         return 
 
     def get_next_id(self):
-        return max(
-            (product.get_product_id() for product in self.__inventory),
-            default=100,
-        ) + 1
+        return max((product.get_product_id() for product in self.__inventory), default=100,) + 1
 
     def get_inventory(self):
         return self.__inventory.copy()
@@ -108,6 +114,9 @@ class Inventory:
         print("Product Saved!")
 
     def display_all(self):
+        if not self.__inventory:
+            print("Empty Inventory")
+            return
         for item in self.__inventory:
             item.display_information()
 
@@ -179,20 +188,51 @@ def load_inventory():
 
     loaded_stocks = data.get("stocks", [])
     for i in loaded_stocks:
-        item = Product(i["order_id"],i["item_name"], i["item_price"], i["qty"])
+        product_type = i.get("type")
+        if product_type == "physical":
+
+            item = Physicalproduct(
+                i["order_id"],
+                i["item_name"],
+                i["item_price"],
+                i["qty"],
+                i["weight"]
+            )
+
+        elif product_type == "digital":
+
+            item = DigitalProduct(
+                i["order_id"],
+                i["item_name"],
+                i["item_price"],
+                i["qty"],
+                i["download_size"]
+            )
+        else:
+            print(f"Skipping product with missing or unknown type: {i.get('order_id', 'unknown ID')}")
+            continue
+
         inventory.store_product(item)
     return inventory
 
 def generate_and_save_report(inventory, failed, tax):
-    inv = [
-        {
+    inv = []
+    for product in inventory.get_inventory():
+        product_data = {
             "order_id": product.get_product_id(),
             "item_name": product.get_product_name(),
             "item_price": product.get_product_price(),
             "qty": product.get_product_stock(),
         }
-        for product in inventory.get_inventory()
-    ]
+        if isinstance(product, Physicalproduct):
+            product_data["type"] = "physical"
+            product_data["weight"] = product.get_weight()
+        elif isinstance(product, DigitalProduct):
+            product_data["type"] = "digital"
+            product_data["download_size"] = product.get_download_size()
+        else:
+            raise TypeError(f"Unsupported product type: {type(product).__name__}")
+        inv.append(product_data)
 
     data = {
         "stocks": inv,

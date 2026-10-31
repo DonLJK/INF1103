@@ -2,32 +2,24 @@
     "stocks": [
         {
             "order_id": 101,
-            "item_name": "Laptop",
-            "item_price": 1200.0,
-            "qty": 5
+            "item_name": "test",
+            "item_price": 100.0,
+            "qty": 10,
+            "type": "physical",
+            "weight": 5.0
         },
         {
             "order_id": 102,
-            "item_name": "Mouse",
-            "item_price": 25.5,
-            "qty": 40
-        },
-        {
-            "order_id": 103,
-            "item_name": "Keyboard",
-            "item_price": 45.0,
-            "qty": 25
-        },
-        {
-            "order_id": 104,
-            "item_name": "Monitor",
-            "item_price": 299.99,
-            "qty": 10
+            "item_name": "celihopter",
+            "item_price": 200000.0,
+            "qty": 10,
+            "type": "digital",
+            "download_size": "1Tb"
         }
     ],
     "report": {
-        "total_units": 80,
+        "total_units": 20,
         "failed_attempts": 0,
-        "tax_revenue": 8.0
+        "tax_revenue": 2.0
     }
 }
