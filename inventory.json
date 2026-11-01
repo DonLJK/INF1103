@@ -15,11 +15,20 @@
             "qty": 10,
             "type": "digital",
             "download_size": "1Tb"
+        },
+        {
+            "order_id": 103,
+            "item_name": "baked potato",
+            "item_price": 50.0,
+            "qty": 30,
+            "type": "physical",
+            "weight": 100.0
         }
     ],
     "report": {
-        "total_units": 20,
+        "total_units": 50,
         "failed_attempts": 0,
-        "tax_revenue": 2.0
+        "tax_revenue": 5.0,
+        "Shipping cost": 10.5
     }
 }

@@ -217,6 +217,7 @@ def load_inventory():
 
 def generate_and_save_report(inventory, failed, tax):
     inv = []
+    total_ship = 0
     for product in inventory.get_inventory():
         product_data = {
             "order_id": product.get_product_id(),
@@ -227,6 +228,7 @@ def generate_and_save_report(inventory, failed, tax):
         if isinstance(product, Physicalproduct):
             product_data["type"] = "physical"
             product_data["weight"] = product.get_weight()
+            total_ship += product.calculate_shipping_cost()
         elif isinstance(product, DigitalProduct):
             product_data["type"] = "digital"
             product_data["download_size"] = product.get_download_size()
@@ -240,6 +242,7 @@ def generate_and_save_report(inventory, failed, tax):
             "total_units": inventory.get_total_stocks(),
             "failed_attempts": failed,
             "tax_revenue": tax,
+            "Shipping cost": total_ship,
         },
     }
 
@@ -255,7 +258,11 @@ error_count = 0
 Menu.show() 
 my_inventory = load_inventory()
 while True:
-    choice = Menu.get_user_input()
+    try:
+        choice = Menu.get_user_input()
+    except UnboundLocalError:
+        print("Please Select 1-6")
+        continue
     if choice == 1:
         print("\n====Displaying Inventory====\n")
         my_inventory.display_all()
@@ -264,39 +271,42 @@ while True:
         print("==== ADD PRODUCT ====")
         Menu.display_options()
         u_choice = Menu.get_user_input()
-        #Thinking how to make this better so that 
-        n_id = my_inventory.get_next_id()
-        print("Product ID: ", n_id)
-        try:
-            prod_name = input("Product name: ")
-        except ValueError:
-            print("Invalid ID")
-            continue
-        if prod_name == "quit":
-            break
-
-        result = get_valid_input()
-        if result is None:
-            break
-        elif result == "error":
-                error_count += 1
+        if u_choice <3 and u_choice>=1:
+            n_id = my_inventory.get_next_id()
+            print("Product ID: ", n_id)
+            try:
+                prod_name = input("Product name: ")
+            except ValueError:
+                print("Invalid ID")
                 continue
-        price, num = result
-        total = my_inventory.get_total_stocks()
-        new_total = my_inventory.check_storage_space(total, num)
+            if prod_name == "quit":
+                break
 
-        if new_total == total and num > 0:
+            result = get_valid_input()
+            if result is None:
+                break
+            elif result == "error":
+                    error_count += 1
+                    continue
+            price, num = result
+            total = my_inventory.get_total_stocks()
+            new_total = my_inventory.check_storage_space(total, num)
+
+            if new_total == total and num > 0:
+                continue
+
+            if u_choice == 1:
+                weight = float(input("Enter Product Weight(kg): "))
+                new_item = Physicalproduct(n_id, prod_name, price, num, weight)
+
+            elif u_choice == 2:
+                dwn_size = input("Enter Download size: ")
+                new_item = DigitalProduct(n_id, prod_name, price, num, dwn_size)
+            
+            my_inventory.add_product(new_item)
+        else: 
+            print("Out of bounds\nrestarting...")
             continue
-
-        if u_choice == 1:
-            weight = float(input("Enter Product Weight(kg): "))
-            new_item = Physicalproduct(n_id, prod_name, price, num, weight)
-
-        elif u_choice == 2:
-            dwn_size = input("Enter Download size: ")
-            new_item = DigitalProduct(n_id, prod_name, price, num, dwn_size)
-        
-        my_inventory.add_product(new_item)
 
     elif choice == 3:
         print("=====Update Product====")
