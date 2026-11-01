@@ -12,7 +12,7 @@
             "order_id": 102,
             "item_name": "celihopter",
             "item_price": 200000.0,
-            "qty": 10,
+            "qty": 15,
             "type": "digital",
             "download_size": "1Tb"
         },
@@ -23,12 +23,20 @@
             "qty": 30,
             "type": "physical",
             "weight": 100.0
+        },
+        {
+            "order_id": 104,
+            "item_name": "phones",
+            "item_price": 999.0,
+            "qty": 20,
+            "type": "physical",
+            "weight": 2.5
         }
     ],
     "report": {
-        "total_units": 50,
+        "total_units": 75,
         "failed_attempts": 0,
-        "tax_revenue": 5.0,
-        "Shipping cost": 10.5
+        "tax_revenue": 7.5,
+        "Shipping cost": 10.75
     }
 }
