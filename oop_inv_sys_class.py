@@ -14,7 +14,7 @@ class Supplier:
 
 
 class Product(ABC):
-    def __init__ (self, productid:int, name:str, price:float, stock:int, supplier=Supplier):
+    def __init__ (self, productid:int, name:str, price:float, stock:int, supplier: Supplier):
         self.__productid = productid
         self.__productname = name
         self.__productprice = price
@@ -47,6 +47,9 @@ class Product(ABC):
 
     def display_supply_info(self):
         self.supplier.display_information()
+
+    def get_supply_info(self):
+        return self.supplier.supplier_id, self.supplier.supplier_name, self.supplier.supplier_email
 
 class CanBeShipped(ABC):
     @abstractmethod
@@ -96,9 +99,9 @@ class DigitalProduct(Product):
 
 class Inventory:
     def __init__(self):
-        self.__inventory = []
+        self.__inventory: list[Product] = []
 
-    def get_product(self, id):
+    def get_product(self, id: str) -> Product|None:
         for items in self.__inventory:
             if items.get_product_id() == id:
                 print("\n-----PRODUCT FOUND!-----") 
@@ -131,14 +134,13 @@ class Inventory:
     def store_product(self, product): #Storing existing values
         self.__inventory.append(product)
 
-    def add_product(self, product): #Storing new values into current inventory filled
+    def add_product(self, product: Product) -> None: 
         self.__inventory.append(product)
-        print("Product Saved!")
+        print("Product Added!")
 
     def display_all(self):
         if not self.__inventory:
-            print("Empty Inventory")
-            return
+            return print("Empty Inventory")
         for item in self.__inventory:
             item.display_information()
 
@@ -146,6 +148,15 @@ class Inventory:
         stock = self.get_total_stocks()
         tax = int(stock) * 10/100
         return tax
+
+    def remove(self,item_id: str) ->None:
+        for product in self.__inventory:
+            if str(product.get_product_id()) == item_id: #I used get&set methods from C++ days
+                self.__inventory.remove(product) #remove was a thing for python lists that i forgot
+                print("Product Removed")
+                return
+
+        
 
 
 class Menu: #Cycle through options - for now also creates the products and inventory
@@ -211,6 +222,12 @@ def load_inventory():
     loaded_stocks = data.get("stocks", [])
     for i in loaded_stocks:
         product_type = i.get("type")
+        supplier_data = i["supplier"]
+        supplier = Supplier(
+            supplier_data["supplier_id"],
+            supplier_data["supplier_name"],
+            supplier_data["supplier_email"]
+        )
         if product_type == "physical":
 
             item = Physicalproduct(
@@ -218,6 +235,7 @@ def load_inventory():
                 i["item_name"],
                 i["item_price"],
                 i["qty"],
+                supplier,
                 i["weight"]
             )
 
@@ -228,6 +246,7 @@ def load_inventory():
                 i["item_name"],
                 i["item_price"],
                 i["qty"],
+                supplier,
                 i["download_size"]
             )
         else:
@@ -246,6 +265,11 @@ def generate_and_save_report(inventory, failed, tax):
             "item_name": product.get_product_name(),
             "item_price": product.get_product_price(),
             "qty": product.get_product_stock(),
+            "supplier": {
+                "Supplier ID: ": product.supplier.supplier_id,
+                "Supplier Name: ": product.supplier.supplier_name,
+                "Supplier Email: ": product.supplier.supplier_email
+            }
         }
         if isinstance(product, Physicalproduct):
             product_data["type"] = "physical"
@@ -274,7 +298,33 @@ def generate_and_save_report(inventory, failed, tax):
     print("Inventory saved.")
 
 
+# Create supplier
+supplier = Supplier(1, "ABC Suppliers", "abc@gmail.com")
 
+# Create product BEFORE inventory
+keyboard = Physicalproduct(
+    101, "Keyboard", 50.0, 10, supplier, 1.5
+)
+
+# Create two inventories
+inventory_A = Inventory()
+inventory_B = Inventory()
+
+# Add product to A
+inventory_A.add_product(keyboard)
+
+# Remove product from A
+inventory_A.remove("101")
+
+# Check if product still exists
+keyboard.display_information()
+
+# Add SAME product to B
+inventory_B.add_product(keyboard)
+
+# Display B
+inventory_B.display_all()
+'''
 supplier = Supplier(1, "ABC Suppliers", "abc@gmail.com")
 error_count = 0
 Menu.show() 
@@ -321,13 +371,13 @@ while True:
             if u_choice == 1:
                 weight = float(input("Enter Product Weight(kg): "))
                 new_item = Physicalproduct(n_id, prod_name, price, num, supplier, weight)
-                del supplier
+                
                 new_item.display_supply_info()
 
             elif u_choice == 2:
                 dwn_size = input("Enter Download size: ")
                 new_item = DigitalProduct(n_id, prod_name, price, num, supplier, dwn_size)
-                del supplier
+                
                 new_item.display_supply_info()
             
             my_inventory.add_product(new_item)
@@ -368,3 +418,4 @@ while True:
         print("Inventory Saved successfully\n\n")
         print("Program Terminated")
         break
+    '''

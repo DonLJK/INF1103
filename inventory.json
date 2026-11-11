@@ -3,16 +3,21 @@
         {
             "order_id": 101,
             "item_name": "test",
-            "item_price": 5.0,
-            "qty": 10,
+            "item_price": 100.0,
+            "qty": 5,
+            "supplier": {
+                "Supplier ID: ": 1,
+                "Supplier Name: ": "ABC Suppliers",
+                "Supplier Email: ": "abc@gmail.com"
+            },
             "type": "physical",
-            "weight": 4.0
+            "weight": 10.0
         }
     ],
     "report": {
-        "total_units": 10,
+        "total_units": 5,
         "failed_attempts": 0,
-        "tax_revenue": 1.0,
-        "Shipping cost": 0.4
+        "tax_revenue": 0.5,
+        "Shipping cost": 1.0
     }
 }
