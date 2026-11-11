@@ -2,32 +2,17 @@
     "stocks": [
         {
             "order_id": 101,
-            "item_name": "Laptop",
-            "item_price": 1200.0,
-            "qty": 15
-        },
-        {
-            "order_id": 102,
-            "item_name": "Mouse",
-            "item_price": 25.5,
-            "qty": 4
-        },
-        {
-            "order_id": 103,
-            "item_name": "Keyboard",
-            "item_price": 45.0,
-            "qty": 25
-        },
-        {
-            "order_id": 104,
-            "item_name": "Monitor",
-            "item_price": 299.0,
-            "qty": 10
+            "item_name": "test",
+            "item_price": 5.0,
+            "qty": 10,
+            "type": "physical",
+            "weight": 4.0
         }
     ],
     "report": {
-        "total_units": 54,
+        "total_units": 10,
         "failed_attempts": 0,
-        "tax_revenue": 5.4
+        "tax_revenue": 1.0,
+        "Shipping cost": 0.4
     }
 }

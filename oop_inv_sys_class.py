@@ -2,12 +2,25 @@ import math
 import json
 from abc import ABC, abstractmethod
 
+class Supplier:
+    def __init__(self, Supplier_id, name, email):
+        self.supplier_id = Supplier_id
+        self.supplier_name = name
+        self.supplier_email = email
+        return
+
+    def display_information(self):
+        return print(f"Supplier ID: {self.supplier_id}\nSupplier Name: {self.supplier_name}\nSupplier Email: {self.supplier_email}")
+
+
 class Product(ABC):
-    def __init__ (self, productid, name, price, stock):
+    def __init__ (self, productid:int, name:str, price:float, stock:int, supplier=Supplier):
         self.__productid = productid
         self.__productname = name
         self.__productprice = price
         self.__productstock = stock
+
+        self.supplier: Supplier = supplier
 
     def update_stock(self, quantity):
         self.__productstock = quantity
@@ -32,15 +45,18 @@ class Product(ABC):
     def get_fulfilment_info(self):
         pass
 
+    def display_supply_info(self):
+        self.supplier.display_information()
+
 class CanBeShipped(ABC):
     @abstractmethod
     def calculate_shipping_cost(self):
         pass
 
 class Physicalproduct(Product, CanBeShipped):
-    def __init__ (self, productid, name, price, stock, weight):
+    def __init__ (self, productid, name, price, stock, supplier, weight):
         self.__productweight = weight
-        super().__init__(productid, name, price, stock)
+        super().__init__(productid, name, price, stock, supplier)
 
     def display_information(self):
         print(f"ID: {self.get_product_id()} | Name: {self.get_product_name()} | Price:  {self.get_product_price()} | Stock: {self.get_product_stock()} | Weight: {self.__productweight}")
@@ -58,10 +74,13 @@ class Physicalproduct(Product, CanBeShipped):
     def update_weight(self, weight):
         self.__productweight = weight
 
+    def display_supply_info(self):
+        self.supplier.display_information()
+
 class DigitalProduct(Product):
-    def __init__ (self, productid, name, price, stock, dwn_size):
+    def __init__ (self, productid, name, price, stock, supplier, dwn_size):
         self.__dwn_size = dwn_size
-        super().__init__(productid, name, price, stock)
+        super().__init__(productid, name, price, stock, supplier)
 
     def display_information(self):
         print(f"ID: {self.get_product_id()} | Name: {self.get_product_name()} | Price:  {self.get_product_price()} | Stock: {self.get_product_stock()} | Download Size: {self.__dwn_size}")
@@ -71,6 +90,9 @@ class DigitalProduct(Product):
 
     def get_download_size(self):
         return self.__dwn_size
+
+    def display_supply_info(self):
+        self.supplier.display_information()
 
 class Inventory:
     def __init__(self):
@@ -253,7 +275,7 @@ def generate_and_save_report(inventory, failed, tax):
 
 
 
-
+supplier = Supplier(1, "ABC Suppliers", "abc@gmail.com")
 error_count = 0
 Menu.show() 
 my_inventory = load_inventory()
@@ -295,13 +317,18 @@ while True:
             if new_total == total and num > 0:
                 continue
 
+           
             if u_choice == 1:
                 weight = float(input("Enter Product Weight(kg): "))
-                new_item = Physicalproduct(n_id, prod_name, price, num, weight)
+                new_item = Physicalproduct(n_id, prod_name, price, num, supplier, weight)
+                del supplier
+                new_item.display_supply_info()
 
             elif u_choice == 2:
                 dwn_size = input("Enter Download size: ")
-                new_item = DigitalProduct(n_id, prod_name, price, num, dwn_size)
+                new_item = DigitalProduct(n_id, prod_name, price, num, supplier, dwn_size)
+                del supplier
+                new_item.display_supply_info()
             
             my_inventory.add_product(new_item)
         else: 
