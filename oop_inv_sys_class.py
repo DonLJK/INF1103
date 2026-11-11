@@ -146,7 +146,7 @@ class Inventory:
             return print("Empty Inventory")
         for item in self.__inventory:
             item.display_information()
-            print(item.get_fulfilment_info())
+            #print(item.get_fulfilment_info())
 
     def calculate_tax(self) -> float:
         stock: int = self.get_total_stocks()
@@ -364,6 +364,40 @@ def show_product_details(product: Product) -> None:
 test_lsp()
 
 '''
+def test_polymorphism() -> None:
+
+    supplier = Supplier(1, "ABC Suppliers", "abc@gmail.com")
+
+    # Create both product types
+    physical_item = Physicalproduct(
+        101, "Laptop", 1200.0, 10, supplier, 2.5
+    )
+
+    digital_item = DigitalProduct(
+        102, "E-Book", 20.0, 50, supplier, "15MB"
+    )
+
+    # Add both to the same Inventory
+    inventory = Inventory()
+
+    inventory.add_product(physical_item)
+    inventory.add_product(digital_item)
+
+    # Access both through the Product collection
+    print("\n===== POLYMORPHISM TEST =====")
+
+    for product in inventory.get_inventory():
+
+        product.display_information()
+
+        print(product.get_fulfilment_info())
+
+        print("--------------------------")
+
+
+test_polymorphism()
+
+'''
 supplier = Supplier(1, "ABC Suppliers", "abc@gmail.com")
 error_count = 0
 Menu.show() 
@@ -461,3 +495,4 @@ while True:
         print("Inventory Saved successfully\n\n")
         print("Program Terminated")
         break
+'''
