@@ -6,9 +6,9 @@
             "item_price": 100.0,
             "qty": 5,
             "supplier": {
-                "Supplier ID: ": 1,
-                "Supplier Name: ": "ABC Suppliers",
-                "Supplier Email: ": "abc@gmail.com"
+                "supplier_id": 1,
+                "supplier_name": "ABC Suppliers",
+                "supplier_email": "abc@gmail.com"
             },
             "type": "physical",
             "weight": 10.0

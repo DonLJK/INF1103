@@ -1,104 +1,107 @@
+import _io
+import io
 import math
 import json
-from abc import ABC, abstractmethod
+import abc
+import typing
 
 class Supplier:
-    def __init__(self, Supplier_id, name, email):
-        self.supplier_id = Supplier_id
-        self.supplier_name = name
-        self.supplier_email = email
+    def __init__(self, Supplier_id: int, name: str, email: str) -> None:
+        self.supplier_id:int = Supplier_id
+        self.supplier_name:str = name
+        self.supplier_email:str = email
         return
 
-    def display_information(self):
+    def display_information(self) -> None:
         return print(f"Supplier ID: {self.supplier_id}\nSupplier Name: {self.supplier_name}\nSupplier Email: {self.supplier_email}")
 
 
-class Product(ABC):
-    def __init__ (self, productid:int, name:str, price:float, stock:int, supplier: Supplier):
-        self.__productid = productid
-        self.__productname = name
-        self.__productprice = price
-        self.__productstock = stock
+class Product(abc.ABC):#Used Source-Action apply all annotation to save time for subsequent singatures
+    def __init__ (self, productid:int, name:str, price:float, stock:int, supplier: Supplier) -> None:
+        self.__productid: int = productid
+        self.__productname: str = name
+        self.__productprice: float = price
+        self.__productstock: int = stock
 
         self.supplier: Supplier = supplier
 
-    def update_stock(self, quantity):
-        self.__productstock = quantity
+    def update_stock(self, quantity:int) -> None:
+        self.__productstock: int = quantity
 
-    def display_information(self):
+    def display_information(self) -> None:
         print(f"ID: {self.__productid} | Name: {self.__productname} | Price:  {self.__productprice} | Stock: {self.__productstock}")
         return 
 
-    def get_product_id(self):
+    def get_product_id(self) -> int:
         return self.__productid
 
-    def get_product_name(self):
+    def get_product_name(self) -> str:
         return self.__productname
 
-    def get_product_price(self):
+    def get_product_price(self) -> float:
         return self.__productprice
 
-    def get_product_stock(self):
+    def get_product_stock(self) -> int:
         return self.__productstock
 
-    @abstractmethod
-    def get_fulfilment_info(self):
+    @abc.abstractmethod
+    def get_fulfilment_info(self) -> str:
         pass
 
-    def display_supply_info(self):
+    def display_supply_info(self) -> None:
         self.supplier.display_information()
 
-    def get_supply_info(self):
+    def get_supply_info(self) -> tuple[int, str, str]:
         return self.supplier.supplier_id, self.supplier.supplier_name, self.supplier.supplier_email
 
-class CanBeShipped(ABC):
-    @abstractmethod
-    def calculate_shipping_cost(self):
+class CanBeShipped(abc.ABC):
+    @abc.abstractmethod
+    def calculate_shipping_cost(self) -> float:
         pass
 
 class Physicalproduct(Product, CanBeShipped):
-    def __init__ (self, productid, name, price, stock, supplier, weight):
-        self.__productweight = weight
+    def __init__ (self, productid:int, name:str, price:float, stock:int, supplier:Supplier, weight:float) -> None:
+        self.__productweight: typing.Any = weight
         super().__init__(productid, name, price, stock, supplier)
 
-    def display_information(self):
+    def display_information(self) -> None:
         print(f"ID: {self.get_product_id()} | Name: {self.get_product_name()} | Price:  {self.get_product_price()} | Stock: {self.get_product_stock()} | Weight: {self.__productweight}")
 
-    def get_fulfilment_info(self):
+    def get_fulfilment_info(self) -> str:
         return "Product requires physical shipping"
 
-    def calculate_shipping_cost(self):
+    def calculate_shipping_cost(self) -> float:
         s_cost = self.__productweight * 0.10
         return s_cost
 
-    def get_weight(self):
+    def get_weight(self) -> float:
         return self.__productweight
 
-    def update_weight(self, weight):
+    def update_weight(self, weight:float) -> None:
         self.__productweight = weight
 
-    def display_supply_info(self):
+    def display_supply_info(self) -> None:
         self.supplier.display_information()
 
 class DigitalProduct(Product):
-    def __init__ (self, productid, name, price, stock, supplier, dwn_size):
-        self.__dwn_size = dwn_size
+    def __init__ (self, productid:int, name:str, price:float, stock:int, supplier:Supplier, dwn_size:str) -> None:
+        self.__dwn_size: typing.Any = dwn_size
         super().__init__(productid, name, price, stock, supplier)
 
-    def display_information(self):
+    def display_information(self) -> None:
         print(f"ID: {self.get_product_id()} | Name: {self.get_product_name()} | Price:  {self.get_product_price()} | Stock: {self.get_product_stock()} | Download Size: {self.__dwn_size}")
 
-    def get_fulfilment_info(self):
+    def get_fulfilment_info(self) -> str:
         return "Product is delivered digitally"
 
-    def get_download_size(self):
+    def get_download_size(self) -> str:
         return self.__dwn_size
 
-    def display_supply_info(self):
+    def display_supply_info(self) -> None:
         self.supplier.display_information()
 
 class Inventory:
-    def __init__(self):
+    def __init__(self) -> None:
         self.__inventory: list[Product] = []
 
     def get_product(self, id: str) -> Product|None:
@@ -113,17 +116,17 @@ class Inventory:
         print("product not found")
         return 
 
-    def get_next_id(self):
+    def get_next_id(self) -> int:
         return max((product.get_product_id() for product in self.__inventory), default=100,) + 1
 
-    def get_inventory(self):
+    def get_inventory(self) -> list[Product]:
         return self.__inventory.copy()
 
-    def get_total_stocks(self):
-        total = sum(items.get_product_stock() for items in self.__inventory)
+    def get_total_stocks(self) -> int:
+        total: int = sum(items.get_product_stock() for items in self.__inventory)
         return total
 
-    def check_storage_space(self, total_stocks, qty):
+    def check_storage_space(self, total_stocks:int , qty:int) -> int:
         new_total = total_stocks + int(qty)
         if new_total > 500:
             print("\nDelivery skipped: inventory limit would be exceeded.")
@@ -131,22 +134,23 @@ class Inventory:
             return total_stocks
         return new_total
 
-    def store_product(self, product): #Storing existing values
+    def store_product(self, product) -> None: #Storing existing values
         self.__inventory.append(product)
 
     def add_product(self, product: Product) -> None: 
         self.__inventory.append(product)
         print("Product Added!")
 
-    def display_all(self):
+    def display_all(self) -> None:
         if not self.__inventory:
             return print("Empty Inventory")
         for item in self.__inventory:
             item.display_information()
+            print(item.get_fulfilment_info())
 
-    def calculate_tax(self):
-        stock = self.get_total_stocks()
-        tax = int(stock) * 10/100
+    def calculate_tax(self) -> float:
+        stock: int = self.get_total_stocks()
+        tax: float = int(stock) * 10/100
         return tax
 
     def remove(self,item_id: str) ->None:
@@ -156,11 +160,35 @@ class Inventory:
                 print("Product Removed")
                 return
 
-        
 
+class OrderLine: 
+    def __init__(self, product:Product, qty: int) -> None:
+        self.product: Product = product
+        self.quantity: int = qty
+
+    def calculate_subtotal(self) -> float:
+        return self.product.get_product_price() * self.quantity
+
+    
+
+
+class Order:
+    def __init__(self, order_id: str) -> None:
+        self.order_id: str = order_id
+        self.order_lines: list[OrderLine] = []
+
+    def add_order_line(self, product: Product, quantity: int) -> None:
+        order_line = OrderLine(product, quantity)
+        self.order_lines.append(order_line)
+
+    def calculate_total(self) -> float:
+        total_value = 0
+        for orders in self.order_lines:
+            total_value += orders.calculate_subtotal()
+        return total_value
 
 class Menu: #Cycle through options - for now also creates the products and inventory
-    def show():
+    def show() -> None:
         print("==========================================")
         print("INVENTORY MANAGEMENT SYSTEM")
         print("==========================================\n")
@@ -171,25 +199,25 @@ class Menu: #Cycle through options - for now also creates the products and inven
         print("5. Save Inventory")
         print("6. Exit")
 
-    def get_user_input():
+    def get_user_input() -> int:
         try:
             user_choice = int(input("\nSelect an Option: "))
         except ValueError:
             print("Invalid Value")
         return user_choice
 
-    def display_options():
+    def display_options() -> None:
         print("1. Physical product")
         print("2. Digital product")
 
-def get_valid_input():
-        qty = input("Enter stock quantity: ")
+def get_valid_input() -> None | tuple[float, int] | str:
+        qty: str = input("Enter stock quantity: ")
         if qty == "quit":
             return None
         if not qty.isdigit():
             print("Invalid Value, please try again")
             return "error"
-        item_price = input("Price: ")
+        item_price: str = input("Price: ")
         try:
             price = float(item_price)
         except ValueError:
@@ -203,11 +231,11 @@ def get_valid_input():
         return price, int(qty)
         
     
-def load_inventory():
+def load_inventory() -> Inventory:
     try:
         inventory = Inventory()
-        with open("inventory.json", "r", encoding="utf-8") as file:
-            content = file.read().strip()
+        with open("inventory.json", "r", encoding="utf-8") as file: 
+            content: str = file.read().strip()
             if not content:
                 print("inventory.json is empty, starting with new inventory")
                 return inventory
@@ -230,7 +258,7 @@ def load_inventory():
         )
         if product_type == "physical":
 
-            item = Physicalproduct(
+            item: Physicalproduct[typing.Any, typing.Any, typing.Any, typing.Any, Supplier, typing.Any] = Physicalproduct(
                 i["order_id"],
                 i["item_name"],
                 i["item_price"],
@@ -241,7 +269,7 @@ def load_inventory():
 
         elif product_type == "digital":
 
-            item = DigitalProduct(
+            item: DigitalProduct[typing.Any, typing.Any, typing.Any, typing.Any, Supplier, typing.Any] = DigitalProduct(
                 i["order_id"],
                 i["item_name"],
                 i["item_price"],
@@ -256,7 +284,7 @@ def load_inventory():
         inventory.store_product(item)
     return inventory
 
-def generate_and_save_report(inventory, failed, tax):
+def generate_and_save_report(inventory, failed, tax) -> None:
     inv = []
     total_ship = 0
     for product in inventory.get_inventory():
@@ -266,9 +294,9 @@ def generate_and_save_report(inventory, failed, tax):
             "item_price": product.get_product_price(),
             "qty": product.get_product_stock(),
             "supplier": {
-                "Supplier ID: ": product.supplier.supplier_id,
-                "Supplier Name: ": product.supplier.supplier_name,
-                "Supplier Email: ": product.supplier.supplier_email
+                "supplier_id": product.supplier.supplier_id,
+                "supplier_name": product.supplier.supplier_name,
+                "supplier_email": product.supplier.supplier_email
             }
         }
         if isinstance(product, Physicalproduct):
@@ -292,38 +320,49 @@ def generate_and_save_report(inventory, failed, tax):
         },
     }
 
-    with open("inventory.json", "w", encoding="utf-8") as file:
+    with open("inventory.json", "w", encoding="utf-8") as file: 
         json.dump(data, file, indent=4)
 
     print("Inventory saved.")
 
+def show_product_details(product: Product) -> None:
+    product.display_information()
+    print(product.get_fulfilment_info())
 
-# Create supplier
-supplier = Supplier(1, "ABC Suppliers", "abc@gmail.com")
+'''def test_lsp() -> None:
+    supplier = Supplier(1, "ABC Suppliers", "abc@gmail.com")
 
-# Create product BEFORE inventory
-keyboard = Physicalproduct(
-    101, "Keyboard", 50.0, 10, supplier, 1.5
-)
+    # Create a physical product
+    physical_item = Physicalproduct(
+        101, "Laptop", 1200.0, 10, supplier, 2.5
+    )
 
-# Create two inventories
-inventory_A = Inventory()
-inventory_B = Inventory()
+    # Create a digital product
+    digital_item = DigitalProduct(
+        102, "E-Book", 20.0, 50, supplier, "15MB"
+    )
 
-# Add product to A
-inventory_A.add_product(keyboard)
+    # Test both products using the same function
+    print("Testing Physical Product:")
+    show_product_details(physical_item)
 
-# Remove product from A
-inventory_A.remove("101")
+    print("\nTesting Digital Product:")
+    show_product_details(digital_item)
 
-# Check if product still exists
-keyboard.display_information()
+    # Test adding both to Inventory
+    inventory = Inventory()
+    inventory.add_product(physical_item)
+    inventory.add_product(digital_item)
 
-# Add SAME product to B
-inventory_B.add_product(keyboard)
+    # Test normal Inventory operations
+    print("\nDisplaying Inventory:")
+    inventory.display_all()
 
-# Display B
-inventory_B.display_all()
+    print("\nTotal Stocks:")
+    print(inventory.get_total_stocks())
+
+test_lsp()
+
 '''
 supplier = Supplier(1, "ABC Suppliers", "abc@gmail.com")
 error_count = 0
@@ -344,25 +383,25 @@ while True:
         Menu.display_options()
         u_choice = Menu.get_user_input()
         if u_choice <3 and u_choice>=1:
-            n_id = my_inventory.get_next_id()
+            n_id: int = my_inventory.get_next_id()
             print("Product ID: ", n_id)
             try:
-                prod_name = input("Product name: ")
+                prod_name: str = input("Product name: ")
             except ValueError:
                 print("Invalid ID")
                 continue
             if prod_name == "quit":
                 break
 
-            result = get_valid_input()
+            result: None | tuple[float, int] | str = get_valid_input()
             if result is None:
                 break
             elif result == "error":
                     error_count += 1
                     continue
             price, num = result
-            total = my_inventory.get_total_stocks()
-            new_total = my_inventory.check_storage_space(total, num)
+            total: int = my_inventory.get_total_stocks()
+            new_total: int = my_inventory.check_storage_space(total, num)
 
             if new_total == total and num > 0:
                 continue
@@ -370,13 +409,13 @@ while True:
            
             if u_choice == 1:
                 weight = float(input("Enter Product Weight(kg): "))
-                new_item = Physicalproduct(n_id, prod_name, price, num, supplier, weight)
+                new_item: Physicalproduct[int, str, float, int, Supplier, float] = Physicalproduct(n_id, prod_name, price, num, supplier, weight)
                 
                 new_item.display_supply_info()
 
             elif u_choice == 2:
-                dwn_size = input("Enter Download size: ")
-                new_item = DigitalProduct(n_id, prod_name, price, num, supplier, dwn_size)
+                dwn_size: str = input("Enter Download size: ")
+                new_item: DigitalProduct[int, str, float, int, Supplier, str] = DigitalProduct(n_id, prod_name, price, num, supplier, dwn_size)
                 
                 new_item.display_supply_info()
             
@@ -392,11 +431,11 @@ while True:
         except ValueError:
             print("Invalid ID")
             continue
-        item = my_inventory.get_product(pid)
+        item: Product | None = my_inventory.get_product(pid)
         if item is not None:
-            qty = input("New Stock value: ")
-            total = my_inventory.get_total_stocks()
-            new_total = my_inventory.check_storage_space(total, qty)
+            qty: str = input("New Stock value: ")
+            total: int = my_inventory.get_total_stocks()
+            new_total: int = my_inventory.check_storage_space(total, qty)
             if new_total == total:
                         continue
             item.update_stock(int(qty))
@@ -411,11 +450,14 @@ while True:
         generate_and_save_report(my_inventory, error_count, my_inventory.calculate_tax())
 
     elif choice == 6:
-        er_count = error_count
-        tax =  my_inventory.calculate_tax()
+        pid = int(input("Product ID: "))
+        my_inventory.remove(pid)
+
+    elif choice == 7:
+        er_count: int = error_count
+        tax: float =  my_inventory.calculate_tax()
         generate_and_save_report(my_inventory, error_count, my_inventory.calculate_tax())
         print("Saving inventory before exit...")
         print("Inventory Saved successfully\n\n")
         print("Program Terminated")
         break
-    '''
