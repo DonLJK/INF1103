@@ -32,16 +32,16 @@ class Product(abc.ABC):#Used Source-Action apply all annotation to save time for
         print(f"ID: {self.__productid} | Name: {self.__productname} | Price:  {self.__productprice} | Stock: {self.__productstock}")
         return 
 
-    def get_product_id(self) -> int:
+    def find_product_id(self) -> int:
         return self.__productid
 
-    def get_product_name(self) -> str:
+    def find_product_name(self) -> str:
         return self.__productname
 
-    def get_product_price(self) -> float:
+    def find_product_price(self) -> float:
         return self.__productprice
 
-    def get_product_stock(self) -> int:
+    def find_product_stock(self) -> int:
         return self.__productstock
 
     @abc.abstractmethod
@@ -65,7 +65,7 @@ class Physicalproduct(Product, CanBeShipped):
         super().__init__(productid, name, price, stock, supplier)
 
     def display_information(self) -> None:
-        print(f"ID: {self.get_product_id()} | Name: {self.get_product_name()} | Price:  {self.get_product_price()} | Stock: {self.get_product_stock()} | Weight: {self.__productweight}")
+        print(f"ID: {self.find_product_id()} | Name: {self.find_product_name()} | Price:  {self.find_product_price()} | Stock: {self.find_product_stock()} | Weight: {self.__productweight}")
 
     def get_fulfilment_info(self) -> str:
         return "Product requires physical shipping"
@@ -89,7 +89,7 @@ class DigitalProduct(Product):
         super().__init__(productid, name, price, stock, supplier)
 
     def display_information(self) -> None:
-        print(f"ID: {self.get_product_id()} | Name: {self.get_product_name()} | Price:  {self.get_product_price()} | Stock: {self.get_product_stock()} | Download Size: {self.__dwn_size}")
+        print(f"ID: {self.find_product_id()} | Name: {self.find_product_name()} | Price:  {self.find_product_price()} | Stock: {self.find_product_stock()} | Download Size: {self.__dwn_size}")
 
     def get_fulfilment_info(self) -> str:
         return "Product is delivered digitally"
@@ -104,26 +104,20 @@ class Inventory:
     def __init__(self) -> None:
         self.__inventory: list[Product] = []
 
-    def get_product(self, id: str) -> Product|None:
+    def find_product(self, id: str) -> Product|None:
         for items in self.__inventory:
-            if items.get_product_id() == id:
-                print("\n-----PRODUCT FOUND!-----") 
-                print("Item ID: ",items.get_product_id())
-                print("Item name: ",items.get_product_name())
-                print("Item Price: ", items.get_product_price())
-                print("Stock: ", items.get_product_stock())
+            if items.find_product_id() == id:
                 return items
-        print("product not found")
-        return 
+        return None 
 
     def get_next_id(self) -> int:
-        return max((product.get_product_id() for product in self.__inventory), default=100,) + 1
+        return max((product.find_product_id() for product in self.__inventory), default=100,) + 1
 
     def get_inventory(self) -> list[Product]:
         return self.__inventory.copy()
 
     def get_total_stocks(self) -> int:
-        total: int = sum(items.get_product_stock() for items in self.__inventory)
+        total: int = sum(items.find_product_stock() for items in self.__inventory)
         return total
 
     def check_storage_space(self, total_stocks:int , qty:int) -> int:
@@ -155,7 +149,7 @@ class Inventory:
 
     def remove(self,item_id: str) ->None:
         for product in self.__inventory:
-            if str(product.get_product_id()) == item_id: #I used get&set methods from C++ days
+            if str(product.find_product_id()) == item_id: #I used get&set methods from C++ days
                 self.__inventory.remove(product) #remove was a thing for python lists that i forgot
                 print("Product Removed")
                 return
@@ -167,9 +161,7 @@ class OrderLine:
         self.quantity: int = qty
 
     def calculate_subtotal(self) -> float:
-        return self.product.get_product_price() * self.quantity
-
-    
+        return self.product.find_product_price() * self.quantity
 
 
 class Order:
@@ -178,14 +170,72 @@ class Order:
         self.order_lines: list[OrderLine] = []
 
     def add_order_line(self, product: Product, quantity: int) -> None:
-        order_line = OrderLine(product, quantity)
+        if quantity <= 0:
+            print("Quantity must be greater than zero.")
+            return
+
+        if quantity > product.find_product_stock():
+            print("Insufficient stock!")
+            return
+
+        order_line: OrderLine = OrderLine(product, quantity)
         self.order_lines.append(order_line)
 
     def calculate_total(self) -> float:
-        total_value = 0
-        for orders in self.order_lines:
-            total_value += orders.calculate_subtotal()
+        total_value: float = 0.0
+
+        for order_line in self.order_lines:
+            total_value += order_line.calculate_subtotal()
+
         return total_value
+
+    def display_order(self) -> None:
+        print(f"\n===== ORDER {self.order_id} =====")
+
+        for order_line in self.order_lines:
+            print(
+                f"{order_line.product.find_product_name()} | "
+                f"Quantity: {order_line.quantity} | "
+                f"Subtotal: ${order_line.calculate_subtotal()}"
+            )
+
+        print(f"Total: ${self.calculate_total()}")
+
+class OrderManager:
+
+    def __init__(self, inventory: Inventory) -> None:
+        self.inventory: Inventory = inventory
+        self.orders: list[Order] = []
+
+    def create_order(self) -> None:
+        order = Order(f"ORD{len(self.orders) + 1}")
+
+        while True:
+            self.inventory.display_all()
+
+            try:
+                pid: int = int(input("Enter Product ID: "))
+                qty: int = int(input("Enter Quantity: "))
+            except ValueError:
+                print("Invalid input!")
+                continue
+
+            product: Product | None = self.inventory.find_product(pid)
+
+            if product is None:
+                continue
+
+            order.add_order_line(product, qty)
+
+            another: str = input(
+                "Add another product? (y/n): "
+            ).lower()
+
+            if another != "y":
+                break
+
+        order.display_order()
+        self.orders.append(order)
 
 class Menu: #Cycle through options - for now also creates the products and inventory
     def show() -> None:
@@ -197,7 +247,9 @@ class Menu: #Cycle through options - for now also creates the products and inven
         print("3. Update Stock")
         print("4. Search Product")
         print("5. Save Inventory")
-        print("6. Exit")
+        print("6. remove item")
+        print("7. create customer order")
+        print("8. Exit")
 
     def get_user_input() -> int:
         try:
@@ -284,15 +336,31 @@ def load_inventory() -> Inventory:
         inventory.store_product(item)
     return inventory
 
-def generate_and_save_report(inventory, failed, tax) -> None:
+def generate_and_save_report(inventory, failed, tax, orders:list[Order]) -> None:
     inv = []
+    order_data = []
     total_ship = 0
+    for order in orders:
+        order_data.append({
+            "order_id": order.order_id,
+            "items": [
+                {
+                    "product_id": line.product.find_product_id(),
+                    "item_name": line.product.find_product_name(),
+                    "quantity": line.quantity,
+                    "subtotal": line.calculate_subtotal(),
+                }
+                for line in order.order_lines
+            ],
+            "total": order.calculate_total(),
+        })
+
     for product in inventory.get_inventory():
         product_data = {
-            "order_id": product.get_product_id(),
-            "item_name": product.get_product_name(),
-            "item_price": product.get_product_price(),
-            "qty": product.get_product_stock(),
+            "order_id": product.find_product_id(),
+            "item_name": product.find_product_name(),
+            "item_price": product.find_product_price(),
+            "qty": product.find_product_stock(),
             "supplier": {
                 "supplier_id": product.supplier.supplier_id,
                 "supplier_name": product.supplier.supplier_name,
@@ -312,6 +380,7 @@ def generate_and_save_report(inventory, failed, tax) -> None:
 
     data = {
         "stocks": inv,
+        "orders": order_data,
         "report": {
             "total_units": inventory.get_total_stocks(),
             "failed_attempts": failed,
@@ -329,79 +398,12 @@ def show_product_details(product: Product) -> None:
     product.display_information()
     print(product.get_fulfilment_info())
 
-'''def test_lsp() -> None:
-    supplier = Supplier(1, "ABC Suppliers", "abc@gmail.com")
 
-    # Create a physical product
-    physical_item = Physicalproduct(
-        101, "Laptop", 1200.0, 10, supplier, 2.5
-    )
-
-    # Create a digital product
-    digital_item = DigitalProduct(
-        102, "E-Book", 20.0, 50, supplier, "15MB"
-    )
-
-    # Test both products using the same function
-    print("Testing Physical Product:")
-    show_product_details(physical_item)
-
-    print("\nTesting Digital Product:")
-    show_product_details(digital_item)
-
-    # Test adding both to Inventory
-    inventory = Inventory()
-    inventory.add_product(physical_item)
-    inventory.add_product(digital_item)
-
-    # Test normal Inventory operations
-    print("\nDisplaying Inventory:")
-    inventory.display_all()
-
-    print("\nTotal Stocks:")
-    print(inventory.get_total_stocks())
-
-test_lsp()
-
-'''
-def test_polymorphism() -> None:
-
-    supplier = Supplier(1, "ABC Suppliers", "abc@gmail.com")
-
-    # Create both product types
-    physical_item = Physicalproduct(
-        101, "Laptop", 1200.0, 10, supplier, 2.5
-    )
-
-    digital_item = DigitalProduct(
-        102, "E-Book", 20.0, 50, supplier, "15MB"
-    )
-
-    # Add both to the same Inventory
-    inventory = Inventory()
-
-    inventory.add_product(physical_item)
-    inventory.add_product(digital_item)
-
-    # Access both through the Product collection
-    print("\n===== POLYMORPHISM TEST =====")
-
-    for product in inventory.get_inventory():
-
-        product.display_information()
-
-        print(product.get_fulfilment_info())
-
-        print("--------------------------")
-
-
-test_polymorphism()
-
-'''
 supplier = Supplier(1, "ABC Suppliers", "abc@gmail.com")
 error_count = 0
 Menu.show() 
 my_inventory = load_inventory()
+customer_order = OrderManager(my_inventory)
 while True:
     try:
         choice = Menu.get_user_input()
@@ -443,14 +445,14 @@ while True:
            
             if u_choice == 1:
                 weight = float(input("Enter Product Weight(kg): "))
-                new_item: Physicalproduct[int, str, float, int, Supplier, float] = Physicalproduct(n_id, prod_name, price, num, supplier, weight)
-                
+                new_item= Physicalproduct(n_id, prod_name, price, num, supplier, weight)
+                del supplier
                 new_item.display_supply_info()
 
             elif u_choice == 2:
                 dwn_size: str = input("Enter Download size: ")
-                new_item: DigitalProduct[int, str, float, int, Supplier, str] = DigitalProduct(n_id, prod_name, price, num, supplier, dwn_size)
-                
+                new_item = DigitalProduct(n_id, prod_name, price, num, supplier, dwn_size)
+                del supplier    
                 new_item.display_supply_info()
             
             my_inventory.add_product(new_item)
@@ -465,8 +467,11 @@ while True:
         except ValueError:
             print("Invalid ID")
             continue
-        item: Product | None = my_inventory.get_product(pid)
-        if item is not None:
+        item: Product | None = my_inventory.find_product(pid)
+        if item is None:
+            print("Product Not found")
+        elif item is not None:
+            print("==Product Found!==")
             qty: str = input("New Stock value: ")
             total: int = my_inventory.get_total_stocks()
             new_total: int = my_inventory.check_storage_space(total, qty)
@@ -478,21 +483,88 @@ while True:
     elif choice == 4:
         print("====Search Product====")
         pid = int(input("Product ID: "))
-        my_inventory.get_product(pid)
+        item = my_inventory.find_product(pid)
+        if item is None: 
+            print("Product Not Found")
+        elif item is not None:
+            print("==Product Found!==")
+            item.display_information()
             
     elif choice == 5:
-        generate_and_save_report(my_inventory, error_count, my_inventory.calculate_tax())
+        generate_and_save_report(my_inventory, error_count, my_inventory.calculate_tax(), customer_order.orders)
 
     elif choice == 6:
         pid = int(input("Product ID: "))
         my_inventory.remove(pid)
 
-    elif choice == 7:
+    elif choice == 7: #Creates customer order 
+        customer_order.create_order()
+
+    elif choice == 8:
         er_count: int = error_count
         tax: float =  my_inventory.calculate_tax()
-        generate_and_save_report(my_inventory, error_count, my_inventory.calculate_tax())
+        generate_and_save_report(my_inventory, error_count, my_inventory.calculate_tax(), customer_order.orders)
         print("Saving inventory before exit...")
         print("Inventory Saved successfully\n\n")
         print("Program Terminated")
         break
-'''
+
+
+''' #Test generated by AI
+def test_oop() -> None:
+
+    supplier = Supplier(1, "ABC Suppliers", "abc@gmail.com")
+
+    # Create both product types
+    physical = Physicalproduct(101, "Laptop", 1200, 10, supplier, 2.5)
+    digital = DigitalProduct(102, "E-Book", 20, 50, supplier, "15MB")
+
+    # POLYMORPHISM: Store both as Product references
+    inventory = Inventory()
+    product1: Product = physical
+    product2: Product = digital
+
+    inventory.add_product(product1)
+    inventory.add_product(product2)
+
+    print("\n===== POLYMORPHISM TEST =====")
+
+    for product in inventory.get_inventory():
+        product.display_information()
+        print(product.get_fulfilment_info())
+
+    # LSP: Both products support inherited stock updates
+    print("\n===== LSP TEST =====")
+
+    for product in inventory.get_inventory():
+        product.update_stock(8)
+        print(product.find_product_name(), product.find_product_stock())
+
+    # OBJECT RELATIONSHIP TEST
+    print("\n===== OBJECT IDENTITY TEST =====")
+
+    order1 = Order("ORD1")
+    order2 = Order("ORD2")
+
+    order1.add_order_line(physical, 2)
+    order2.add_order_line(physical, 3)
+
+    line1 = order1.order_lines[0]
+    line2 = order2.order_lines[0]
+
+    print("Same Product:", line1.product is line2.product)
+    print("Same OrderLine:", line1 is line2)
+    print("Product count: 1")
+    print("OrderLine count:", len(order1.order_lines) + len(order2.order_lines))
+
+    # Assertions
+    assert line1.product is line2.product
+    assert line1 is not line2
+    assert physical.find_product_stock() == 8
+    assert digital.find_product_stock() == 8
+
+    print("\nAll OOP tests passed!")
+
+
+# Run test when needed
+test_oop()'''

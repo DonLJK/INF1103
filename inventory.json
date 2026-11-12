@@ -12,12 +12,65 @@
             },
             "type": "physical",
             "weight": 10.0
+        },
+        {
+            "order_id": 102,
+            "item_name": "test",
+            "item_price": 10.0,
+            "qty": 5,
+            "supplier": {
+                "supplier_id": 1,
+                "supplier_name": "ABC Suppliers",
+                "supplier_email": "abc@gmail.com"
+            },
+            "type": "physical",
+            "weight": 5.0
+        },
+        {
+            "order_id": 103,
+            "item_name": "test",
+            "item_price": 100.0,
+            "qty": 3,
+            "supplier": {
+                "supplier_id": 1,
+                "supplier_name": "ABC Suppliers",
+                "supplier_email": "abc@gmail.com"
+            },
+            "type": "physical",
+            "weight": 5.0
+        },
+        {
+            "order_id": 104,
+            "item_name": "item",
+            "item_price": 10.0,
+            "qty": 3,
+            "supplier": {
+                "supplier_id": 1,
+                "supplier_name": "ABC Suppliers",
+                "supplier_email": "abc@gmail.com"
+            },
+            "type": "physical",
+            "weight": 5.0
+        },
+        {
+            "order_id": 105,
+            "item_name": "ben10",
+            "item_price": 56.0,
+            "qty": 1,
+            "supplier": {
+                "supplier_id": 1,
+                "supplier_name": "ABC Suppliers",
+                "supplier_email": "abc@gmail.com"
+            },
+            "type": "digital",
+            "download_size": "16Gb"
         }
     ],
+    "orders": [],
     "report": {
-        "total_units": 5,
+        "total_units": 17,
         "failed_attempts": 0,
-        "tax_revenue": 0.5,
-        "Shipping cost": 1.0
+        "tax_revenue": 1.7,
+        "Shipping cost": 2.5
     }
 }
