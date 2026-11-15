@@ -1,5 +1,6 @@
 import _io
 import io
+import csv
 import math
 import json
 from abc import ABC, abstractmethod
@@ -46,7 +47,7 @@ class Supplier:
 
 
 class Product(ABC):#Used Source-Action apply all annotation to save time for subsequent singatures
-    def __init__ (self, productid:int, name:str, price:float, stock:int, supplier: Supplier) -> None:
+    def __init__ (self, productid:int | str, name:str, price:float, stock:int, supplier: Supplier) -> None:
         if price <= 0:
             raise ValueError("Product price must be greater than zero.")
 
@@ -68,7 +69,7 @@ class Product(ABC):#Used Source-Action apply all annotation to save time for sub
         print(f"ID: {self.__productid} | Name: {self.__productname} | Price:  {self.__productprice} | Stock: {self.__productstock}")
         return 
 
-    def find_product_id(self) -> int:
+    def find_product_id(self) -> str:
         return self.__productid
 
     def find_product_name(self) -> str:
@@ -140,14 +141,21 @@ class Inventory:
     def __init__(self) -> None:
         self.__inventory: list[Product] = []
 
-    def find_product(self, id: str) -> Product|None:
+    def find_product(self, id: str | int) -> Product|None:
         for items in self.__inventory:
-            if items.find_product_id() == id:
+            if str(items.find_product_id()) == str(id):
                 return items
         return None 
 
-    def get_next_id(self) -> int:
-        return max((product.find_product_id() for product in self.__inventory), default=100,) + 1
+    def get_next_id(self, prefix: str) -> str:
+        numbers = []
+        for product in self.__inventory:
+            product_id = str(product.find_product_id())
+            suffix = product_id.removeprefix(prefix)
+            if suffix.isdigit():
+                numbers.append(int(suffix))
+
+        return f"{prefix}{max(numbers, default=0) + 1:03d}"
 
     def get_inventory(self) -> list[Product]:
         return self.__inventory.copy()
@@ -207,7 +215,7 @@ class Order:
     def __init__(self, order_id: str, discount: DiscountStrat = None) -> None:
         self.order_id: str = order_id
         self.order_lines: list[OrderLine] = []
-        self.discount: DiscountStrat | NoDiscount = discount if discount is not None else NoDiscount()
+        self.discount: DiscountStrat = discount if discount is not None else NoDiscount()
 
     def set_discount(self, discount: DiscountStrat) -> None:
         self.discount: DiscountStrat = discount
@@ -257,7 +265,7 @@ class OrderManager:
             self.inventory.display_all()
 
             try:
-                pid: int = int(input("Enter Product ID: "))
+                pid: str = input("Enter Product ID: ").strip()
                 qty: int = int(input("Enter Quantity: "))
             except ValueError:
                 print("Invalid input!")
@@ -305,6 +313,7 @@ class Menu: #Cycle through options - for now also creates the products and inven
         print("6. remove item")
         print("7. create customer order")
         print("8. Exit")
+        print("9. Import products from csv file")
 
     def get_user_input() -> int:
         while True:
@@ -319,7 +328,7 @@ class Menu: #Cycle through options - for now also creates the products and inven
 
 def get_valid_input() -> tuple[float, int] | None:
     while True:
-        qty_text = input("Enter stock quantity (or 'quit' to cancel): ").strip()
+        qty_text: str = input("Enter stock quantity (or 'quit' to cancel): ").strip()
 
         if qty_text.lower() == "quit":
             return None
@@ -347,23 +356,17 @@ def get_valid_input() -> tuple[float, int] | None:
 def get_positive_float(prompt: str) -> float:
 
     while True:
-
         try:
             value = float(input(prompt))
 
-            if value <= 0:
-                raise ValueError(
-                    "Please enter a number greater than zero."
-                )
+            if not math.isfinite(value) or value <= 0:
+                print("Please enter a number greater than zero.")
+                continue
 
             return value
 
-        except ValueError as error:
-
-            if str(error) == "Please enter a number greater than zero.":
-                print(error)
-            else:
-                print("Please enter a valid number, e.g. 12.50")
+        except ValueError:
+            print("Please enter a valid number, e.g. 12.50")
         
     
 def load_inventory() -> Inventory:
@@ -392,7 +395,7 @@ def load_inventory() -> Inventory:
             supplier_data["supplier_email"]
         )
         try:
-            item = ProductFactory.create(
+            item: Physicalproduct | DigitalProduct = ProductFactory.create(
                 product_type,
                 i["order_id"],
                 i["item_name"],
@@ -415,6 +418,42 @@ def load_inventory() -> Inventory:
 
         inventory.store_product(item)
     return inventory
+
+def load_products(path: str, inventory: Inventory, supplier: Supplier) -> None:
+    loaded = 0
+    try:
+        file = open(path, newline="", encoding="utf-8")
+    except FileNotFoundError:
+        print(f"Products file not found: {path}")
+    else:
+        with file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                try:
+                    product_type = row["product_type"]
+                    product_id = row["product_id"]
+                    name = row["name"]
+                    price = float(row["price"])
+                    stock = int(row["stock_quantity"])
+                    if product_type == "physical":
+                        product = ProductFactory.create("physical", product_id, name, price, stock, supplier, weight=1.0)
+                    elif product_type == "digital":
+                        product = ProductFactory.create("digital", product_id, name, price, stock, supplier, download_size="Unknown")
+                    else:
+                        product = ProductFactory.create(product_type, product_id, name, price,stock, supplier)
+                    inventory.store_product(product)
+                    loaded += 1
+
+                except ValueError as error:
+                    print(f"Skipping product: {error}")
+
+                except KeyError as error:
+                    print(f"Skipping invalid row: missing {error}")
+
+        print(f"{loaded} products loaded.")
+
+    finally:
+        print("Load attempt finished.")
 
 def generate_and_save_report(inventory, failed, tax, orders:list[Order]) -> None:
     inv = []
@@ -490,113 +529,113 @@ while True:
     except UnboundLocalError:
         print("Please Select 1-6")
         continue
-    if choice == 1:
-        print("\n====Displaying Inventory====\n")
-        my_inventory.display_all()
+    match choice:
+        case 1:
+            print("\n====Displaying Inventory====\n")
+            my_inventory.display_all()
 
-    elif choice == 2:
-        print("==== ADD PRODUCT ====")
-        Menu.display_options()
+        case 2:
+            print("==== ADD PRODUCT ====")
+            Menu.display_options()
+            u_choice = Menu.get_user_input()
+            if u_choice not in (1, 2):
+                print("Please choose 1 or 2.")
+                continue
+            prefix = "P" if u_choice == 1 else "D"
+            product_id = my_inventory.get_next_id(prefix)
+            print("Product ID:", product_id)
+            prod_name: str = input("Product name (or 'quit' to cancel): ").strip()
+            if prod_name.lower() == "quit":
+                continue
+            if not prod_name:
+                print("Product name cannot be empty.")
+                continue
 
-        u_choice = Menu.get_user_input()
-        if u_choice not in (1, 2):
-            print("Please choose 1 or 2.")
-            continue
+            result: tuple[float, int] | None = get_valid_input()
+            if result is None:
+                continue
 
-        prod_name = input("Product name (or 'quit' to cancel): ").strip()
-        if prod_name.lower() == "quit":
-            continue
-        if not prod_name:
-            print("Product name cannot be empty.")
-            continue
+            price, quantity = result
 
-        result = get_valid_input()
-        if result is None:
-            continue
+            total = my_inventory.get_total_stocks()
+            new_total = my_inventory.check_storage_space(total, quantity)
+            if new_total == total and quantity > 0:
+                continue
 
-        price, quantity = result
-
-        total = my_inventory.get_total_stocks()
-        new_total = my_inventory.check_storage_space(total, quantity)
-        if new_total == total and quantity > 0:
-            continue
-
-        product_id = my_inventory.get_next_id()
-
-        try:
-            if u_choice == 1:
-                weight = get_positive_float("Enter Product Weight (kg): ")
-                if not math.isfinite(weight):
-                    print("Weight must be a finite number.")
-                    continue
-
-                new_item = ProductFactory.create(
-                    "physical", product_id, prod_name, price, quantity,
-                    supplier, weight=weight
-                )
-            else:
-                download_size = input("Enter Download size: ").strip()
-                if not download_size:
-                    print("Download size cannot be empty.")
-                    continue
-
-                new_item = ProductFactory.create(
-                    "digital", product_id, prod_name, price, quantity,
-                    supplier, download_size=download_size
-                )
-
-        except ValueError as error:
-            print(f"Could not add product: {error}")
-            continue
-
-        my_inventory.add_product(new_item)
-
-    elif choice == 3:
-        print("=====Update Product====")
-        try:
-            pid = int(input("Product ID: ")) 
-        except ValueError:
-            print("Invalid ID")
-            continue
-        item: Product | None = my_inventory.find_product(pid)
-        if item is None:
-            print("Product Not found")
-        elif item is not None:
-            print("==Product Found!==")
-            qty: str = input("New Stock value: ")
-            total: int = my_inventory.get_total_stocks()
-            new_total: int = my_inventory.check_storage_space(total, qty)
-            if new_total == total:
+            try:
+                if u_choice == 1:
+                    weight: float = get_positive_float("Enter Product Weight (kg): ")
+                    if not math.isfinite(weight):
+                        print("Weight must be a finite number.")
                         continue
-            item.update_stock(int(qty))
-            print("Stock updated!")
 
-    elif choice == 4:
-        print("====Search Product====")
-        pid = int(input("Product ID: "))
-        item = my_inventory.find_product(pid)
-        if item is None: 
-            print("Product Not Found")
-        elif item is not None:
-            print("==Product Found!==")
-            item.display_information()
+                    new_item: Physicalproduct | DigitalProduct = ProductFactory.create(
+                        "physical", product_id, prod_name, price, quantity,
+                        supplier, weight=weight
+                    )
+                else:
+                    download_size: str = input("Enter Download size: ").strip()
+                    if not download_size:
+                        print("Download size cannot be empty.")
+                        continue
+
+                    new_item: Physicalproduct | DigitalProduct = ProductFactory.create(
+                        "digital", product_id, prod_name, price, quantity,
+                        supplier, download_size=download_size
+                    )
+
+            except ValueError as error:
+                print(f"Could not add product: {error}")
+                continue
+
+            my_inventory.add_product(new_item)
+
+        case 3:
+            print("=====Update Product====")
+            pid = input("Product ID: ").strip()
+            item: Product | None = my_inventory.find_product(pid)
+            if item is None:
+                print("Product Not found")
+            elif item is not None:
+                print("==Product Found!==")
+                item.display_information()
+                qty: str = input("New Stock value: ")
+                total: int = my_inventory.get_total_stocks()
+                new_total: int = my_inventory.check_storage_space(total, qty)
+                if new_total == total:
+                            continue
+                item.update_stock(int(qty))
+                print("Stock updated!")
+
+        case 4:
+            print("====Search Product====")
+            pid = input("Product ID: ")
+            item = my_inventory.find_product(pid)
+            if item is None: 
+                print("Product Not Found")
+            elif item is not None:
+                print("==Product Found!==")
+                item.display_information()
             
-    elif choice == 5:
-        generate_and_save_report(my_inventory, error_count, my_inventory.calculate_tax(), customer_order.orders)
+        case 5:
+            generate_and_save_report(my_inventory, error_count, my_inventory.calculate_tax(), customer_order.orders)
 
-    elif choice == 6:
-        pid = int(input("Product ID: "))
-        my_inventory.remove(pid)
+        case 6:
+            pid = input("Product ID: ")
+            my_inventory.remove(pid)
 
-    elif choice == 7: #Creates customer order 
-        customer_order.create_order()
+        case 7: #Creates customer order 
+            customer_order.create_order()
 
-    elif choice == 8:
-        er_count: int = error_count
-        tax: float =  my_inventory.calculate_tax()
-        generate_and_save_report(my_inventory, error_count, my_inventory.calculate_tax(), customer_order.orders)
-        print("Saving inventory before exit...")
-        print("Inventory Saved successfully\n\n")
-        print("Program Terminated")
-        break
+        case 8:
+            er_count: int = error_count
+            tax: float =  my_inventory.calculate_tax()
+            generate_and_save_report(my_inventory, error_count, my_inventory.calculate_tax(), customer_order.orders)
+            print("Saving inventory before exit...")
+            print("Inventory Saved successfully\n\n")
+            print("Program Terminated")
+            break
+
+        case 9:
+            load_products("products.csv", my_inventory, supplier)
 

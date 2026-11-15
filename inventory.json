@@ -1,24 +1,50 @@
 {
     "stocks": [
         {
-            "order_id": 101,
-            "item_name": "test",
-            "item_price": 10.0,
-            "qty": 3,
+            "order_id": "P001",
+            "item_name": "Desk Lamp",
+            "item_price": 25.0,
+            "qty": 10,
             "supplier": {
                 "supplier_id": 1,
                 "supplier_name": "ABC Suppliers",
                 "supplier_email": "abc@gmail.com"
             },
             "type": "physical",
-            "weight": 5.0
+            "weight": 1.0
+        },
+        {
+            "order_id": "D001",
+            "item_name": "Photo Editor",
+            "item_price": 49.9,
+            "qty": 100,
+            "supplier": {
+                "supplier_id": 1,
+                "supplier_name": "ABC Suppliers",
+                "supplier_email": "abc@gmail.com"
+            },
+            "type": "digital",
+            "download_size": "Unknown"
+        },
+        {
+            "order_id": "P003",
+            "item_name": "Monitor Stand",
+            "item_price": 39.5,
+            "qty": 7,
+            "supplier": {
+                "supplier_id": 1,
+                "supplier_name": "ABC Suppliers",
+                "supplier_email": "abc@gmail.com"
+            },
+            "type": "physical",
+            "weight": 1.0
         }
     ],
     "orders": [],
     "report": {
-        "total_units": 3,
+        "total_units": 117,
         "failed_attempts": 0,
-        "tax_revenue": 0.3,
-        "Shipping cost": 0.5
+        "tax_revenue": 11.7,
+        "Shipping cost": 0.2
     }
 }
